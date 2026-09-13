@@ -40,7 +40,7 @@ amount of glue code:
   - `recover-session` — reprocess (curriculum/mappers/QC/transfer) a session whose Bonsai
     workflow(s) already completed, e.g. after a launcher crash.
 - **`clabe`** (`aind-clabe`, installed as a dependency) is the framework that provides the
-  `Launcher`, pickers (rig/session/trainer-state selection), data-transfer services, curriculum
+  `Launcher`, stores (rig/task/trainer-state selection), data-transfer services, curriculum
   runner, and the generic multi-experiment CLI used to run `main.py`.
 - **`pyproject.toml`** / **`uv.lock`** define the single Python environment (managed by
   [`uv`](https://docs.astral.sh/uv/)) that all of the above run in. `[tool.ruff]` excludes the

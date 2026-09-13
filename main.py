@@ -21,8 +21,9 @@ from clabe import aind_apps, resource_monitor, ui
 from clabe.apps import AindBehaviorServicesBonsaiApp, CurriculumSettings
 from clabe.launcher import Launcher, experiment
 from clabe.logging import otel
-from clabe.pickers import DefaultBehaviorPicker, DefaultBehaviorPickerSettings
-from clabe.pickers.dataverse import DataversePicker
+from clabe.session import SessionBuilder
+from clabe.stores import CompositeStore, Kind, LocalFileStore, Store
+from clabe.stores.dataverse import DataverseStore
 
 from common import (
     ByAnimalManipulatorModifier,
@@ -36,37 +37,43 @@ from common import (
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_PICKER_SETTINGS = DefaultBehaviorPickerSettings(
-    config_library_dir=r"\\allen\aind\scratch\AindBehavior.db\AindVrForaging"
-)
+_VR_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindVrForaging")
+_FIP_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindPhysiologyFip")
+_VR_RIG = Kind.from_rig(AindVrForagingRig)
+_FIP_RIG = Kind.from_rig(aind_physiology_fip.rig.AindPhysioFipRig)
+_TRAINER_STATE = Kind.from_trainer_state()
+_TASK_NAME = AindVrForagingTaskLogic.model_fields["name"].default
+assert isinstance(_TASK_NAME, str), "AindVrForagingTaskLogic must define a default task name."
 
-_FIP_PICKER_SETTINGS = DefaultBehaviorPickerSettings(
-    config_library_dir=r"\\allen\aind\scratch\AindBehavior.db\AindPhysiologyFip"
-)
+
+def _behavior_store(session: Session) -> Store:
+    return CompositeStore(
+        default=LocalFileStore(_VR_CONFIG_LIBRARY),
+        routes={_TRAINER_STATE.name: DataverseStore()},
+    ).scoped(subject=session.subject, task_name=_TASK_NAME)
 
 
 async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> None:
     """Shared implementation for the ``vr-foraging`` and ``vr-foraging-fip`` experiments."""
     # Start experiment setup
-    picker = DataversePicker(launcher=launcher, settings=_DEFAULT_PICKER_SETTINGS)
-    fip_picker = DefaultBehaviorPicker(launcher=launcher, settings=_FIP_PICKER_SETTINGS) if with_fip else None
-
-    # Pick and register session
-    session = picker.pick_session(Session)
+    session = SessionBuilder(launcher).build()
+    store = _behavior_store(session)
 
     # Fetch the task settings
-    trainer_state, task_logic = picker.pick_trainer_state(AindVrForagingTaskLogic)
+    trainer_state = store.resolve(_TRAINER_STATE)
+    assert trainer_state.stage is not None
+    task_logic = AindVrForagingTaskLogic.model_validate_json(trainer_state.stage.task.model_dump_json())
 
     # Fetch rig settings
     logger.info("Pick VR Foraging rig...")
-    rig = picker.pick_rig(AindVrForagingRig)
+    rig = store.resolve(_VR_RIG)
     fip_rig = None
-    if fip_picker is not None:
+    if with_fip:
         logger.info("Pick FIP rig...")
-        fip_rig = fip_picker.pick_rig(aind_physiology_fip.rig.AindPhysioFipRig)
+        fip_rig = LocalFileStore(_FIP_CONFIG_LIBRARY).resolve(_FIP_RIG)
 
     if not confirm_session_info(launcher, session, trainer_state):
-        launcher.frontend.notify("Session information not confirmed. Aborting.", ui.MessageLevel.WARNING)
+        ui.notify("Session information not confirmed. Aborting.", ui.MessageLevel.WARNING)
         otel.event("session-aborted")
         return
 
@@ -84,9 +91,8 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
 
     # Post-fetching modifications
     manipulator_modifier = ByAnimalManipulatorModifier(
-        subject_db_path=picker.subject_dir / session.subject,
-        model_path="manipulator.calibration.initial_position",
-        model_name="manipulator_init.json",
+        subject=session.subject,
+        store=store,
         launcher=launcher,
     )
     manipulator_modifier.inject(rig)
@@ -114,10 +120,10 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
 
     # Update manipulator initial position for next session
     try:
-        manipulator_modifier.dump()
+        manipulator_modifier.update()
     except Exception as e:
         logger.error("Failed to update manipulator initial position: %s", e)
-        launcher.frontend.notify(f"Failed to update manipulator position: {e}", ui.MessageLevel.WARNING)
+        ui.notify(f"Failed to update manipulator position: {e}", ui.MessageLevel.WARNING)
         otel.record_exception(e)
 
     # Curriculum
@@ -125,7 +131,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
         _,
         suggestion_path,
         curriculum_settings,
-    ) = await run_curriculum_if_applicable(picker, trainer_state, input_trainer_state_path, launcher)
+    ) = await run_curriculum_if_applicable(store, trainer_state, input_trainer_state_path, launcher)
 
     # Waterlog
     try:
@@ -145,33 +151,31 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     run_vr_foraging_mappers(launcher, suggestion_path, curriculum_settings, utcnow())
     if with_fip:
         run_fip_mapper(launcher)
-    launcher.frontend.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
+    ui.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
 
     # Data QC
-    run_data_qc(picker, launcher)
+    run_data_qc(launcher)
 
     # Watchdog
     launcher.copy_logs()
-    run_data_transfer(picker, launcher, session)
+    run_data_transfer(launcher, session)
 
 
-@experiment(name="vr-foraging")
+@experiment(name="vr-foraging", order=0)
 async def vr_foraging_protocol(launcher: Launcher) -> None:
     """Run VrForaging on its own, without FIP."""
     await _run_vr_foraging_experiment(launcher, with_fip=False)
 
 
-@experiment(name="vr-foraging-fip")
+@experiment(name="vr-foraging-fip", order=1)
 async def vr_foraging_fip_protocol(launcher: Launcher) -> None:
     """Run VrForaging and FIP concurrently as a single combined session."""
     await _run_vr_foraging_experiment(launcher, with_fip=True)
 
 
-@experiment(name="calibration")
+@experiment(name="calibration", order=2)
 async def calibration_protocol(launcher: Launcher) -> None:
     """Run only the VrForaging rig, for calibration purposes. No data is recorded."""
-    picker = DataversePicker(launcher=launcher, settings=_DEFAULT_PICKER_SETTINGS)
-
     session = Session(
         subject="CALIBRATION",
         experiment="CALIBRATION",
@@ -180,7 +184,7 @@ async def calibration_protocol(launcher: Launcher) -> None:
         notes="Session for rig calibration. No actual experiment data will be recorded.",
     )
 
-    rig = picker.pick_rig(AindVrForagingRig)
+    rig = LocalFileStore(_VR_CONFIG_LIBRARY).resolve(_VR_RIG)
     launcher.register_session(session, rig.data_directory)
 
     bonsai_app = AindBehaviorServicesBonsaiApp(
@@ -192,20 +196,22 @@ async def calibration_protocol(launcher: Launcher) -> None:
         session=session,
     )
     await bonsai_app.run_async()
-    launcher.frontend.notify("Calibration protocol completed successfully.", ui.MessageLevel.SUCCESS)
+    ui.notify("Calibration protocol completed successfully.", ui.MessageLevel.SUCCESS)
 
 
-@experiment(name="recover-session")
+@experiment(name="recover-session", order=3)
 async def recover_session(launcher: Launcher) -> None:
     """Re-run curriculum evaluation, data mapping, QC and transfer for a session
     whose bonsai workflow(s) already completed (e.g. after a launcher crash)."""
-    picker = DataversePicker(launcher=launcher, settings=_DEFAULT_PICKER_SETTINGS)
-    session_path = Path(
-        picker.frontend.prompt_text(ui.TextRequest(label="Enter the path to the session you want to recover:"))
+    session_path = launcher.frontend.prompt_path(
+        ui.PathRequest(
+            label="Choose the session directory to recover:",
+            kind="dir",
+            field="session_directory",
+        )
     )
-    if not session_path.exists():
-        logger.error("Session path does not exist: %s", session_path)
-        launcher.frontend.notify(f"Session path does not exist: {session_path}", ui.MessageLevel.ERROR)
+    if session_path is None:
+        ui.notify("Session recovery cancelled.", ui.MessageLevel.WARNING)
         return
 
     session_model = Session.model_validate_json(
@@ -222,13 +228,12 @@ async def recover_session(launcher: Launcher) -> None:
     trainer_state = TrainerState.model_validate_json(input_trainer_state_path.read_text(encoding="utf-8"))
 
     launcher.register_session(session_model, rig_model.data_directory)
-    # TODO we should fix this in the future to prevent us from accessing the private setter
-    picker._session = session_model
+    store = _behavior_store(session_model)
 
     suggestion_path: Path | None = None
     curriculum_settings: CurriculumSettings | None = None
 
-    if picker.frontend.prompt_confirm(
+    if ui.prompt_confirm(
         ui.ConfirmRequest(
             label="Would you like to run curriculum evaluation and metadata mapping?",
             default=True,
@@ -238,7 +243,7 @@ async def recover_session(launcher: Launcher) -> None:
             _,
             suggestion_path,
             curriculum_settings,
-        ) = await run_curriculum_if_applicable(picker, trainer_state, input_trainer_state_path, launcher)
+        ) = await run_curriculum_if_applicable(store, trainer_state, input_trainer_state_path, launcher)
 
         session_end_time: datetime.datetime | None = None
         while session_end_time is None:
@@ -251,7 +256,7 @@ async def recover_session(launcher: Launcher) -> None:
                 session_end_time = datetime.datetime.fromisoformat(s)
             except ValueError:
                 logger.error("Invalid date format. Please enter the date in ISO format.")
-                launcher.frontend.notify(
+                ui.notify(
                     "Invalid date format. Please use ISO format (YYYY-MM-DDTHH:MM:SSz).",
                     ui.MessageLevel.WARNING,
                 )
@@ -259,12 +264,12 @@ async def recover_session(launcher: Launcher) -> None:
         run_vr_foraging_mappers(launcher, suggestion_path, curriculum_settings, session_end_time)
         run_fip_mapper(launcher)
 
-        launcher.frontend.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
+        ui.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
     else:
-        picker.frontend.notify(
+        ui.notify(
             "Curriculum evaluation and metadata mapping skipped.",
             ui.MessageLevel.WARNING,
         )
 
-    run_data_qc(picker, launcher)
-    run_data_transfer(picker, launcher, session_model)
+    run_data_qc(launcher)
+    run_data_transfer(launcher, session_model)

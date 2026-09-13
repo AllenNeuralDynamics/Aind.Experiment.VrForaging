@@ -1,5 +1,5 @@
 [project]
-name = "aind-experiment-vr-foraging-fip"
+name = "aind-experiment-vr-foraging"
 version = "0.3.0"
 description = "A thin wrapper that runs Aind.Behavior.VrForaging + Physiology experiments"
 readme = "README.md"
@@ -8,7 +8,7 @@ dependencies = [
     "aind-behavior-vr-foraging[data, mappers]",
     "aind-behavior-vr-foraging-curricula",
     "aind-physiology-fip",
-    "aind-clabe[aind-services, otel]>=0.12.2",
+    "aind-clabe[aind-services, otel]>=0.13.0rc1",
     "ruff"
 ]
 

@@ -42,7 +42,7 @@ wheels = [
 
 [[package]]
 name = "aind-behavior-vr-foraging"
-version = "1.2.4"
+version = "1.2.6"
 source = { editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -84,7 +84,7 @@ dev = [
 
 [[package]]
 name = "aind-behavior-vr-foraging-curricula"
-version = "1.2.4"
+version = "1.2.6"
 source = { editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" }
 dependencies = [
     { name = "aind-behavior-curriculum" },
@@ -109,7 +109,7 @@ dev = [
 
 [[package]]
 name = "aind-clabe"
-version = "0.12.2"
+version = "0.13.0rc1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -121,10 +121,12 @@ dependencies = [
     { name = "rich" },
     { name = "semver" },
     { name = "textual" },
+    { name = "textual-fspicker" },
+    { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/89/4c/a0605c1a8bd3791b6141dc19316538a71e89fb4dc1bbc6946c06349db827/aind_clabe-0.12.2.tar.gz", hash = "sha256:40c28bbf728f5d2d579267a2329fa0ba57ededc11fdbf7d7129e0e1de2ecdb16", size = 108911, upload-time = "2026-08-25T18:23:15.693Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/49/2f/1eb5fb14594346465e0e5f7fa01e7150329288c0535779206b7e9755fecb/aind_clabe-0.13.0rc1.tar.gz", hash = "sha256:f2bd077d0a39b9f311ec20c456c1e7237ba199dd04929710ab66b55948fcc710", size = 129222, upload-time = "2026-09-13T19:14:00.701Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/56/f6806cfc40ca6ca41ad3c8da1eddb41e601ab4c3f4d435ba91a901e442eb/aind_clabe-0.12.2-py3-none-any.whl", hash = "sha256:22b924cebb43bb7ad3dc8a0b9d691d9f28a779b1ce3347406c69d4b85254a34d", size = 140093, upload-time = "2026-08-25T18:23:14.455Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/66/1997e39625d90bf299646cc46a5a121dd2979914db4813f255e6798b04ee/aind_clabe-0.13.0rc1-py3-none-any.whl", hash = "sha256:11e810dd497e868c03bdf3ec7887fcbeea7d49536a3399354f74b3893efe8151", size = 162988, upload-time = "2026-09-13T19:13:59.686Z" },
 ]
 
 [package.optional-dependencies]
@@ -191,7 +193,7 @@ wheels = [
 ]
 
 [[package]]
-name = "aind-experiment-vr-foraging-fip"
+name = "aind-experiment-vr-foraging"
 version = "0.3.0"
 source = { virtual = "." }
 dependencies = [
@@ -206,7 +208,7 @@ dependencies = [
 requires-dist = [
     { name = "aind-behavior-vr-foraging", extras = ["data", "mappers"], editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" },
     { name = "aind-behavior-vr-foraging-curricula", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" },
-    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.12.2" },
+    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.0rc1" },
     { name = "aind-physiology-fip", editable = "Aind.Physiology.Fip" },
     { name = "ruff" },
 ]
@@ -1708,6 +1710,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9b/7a/c519db0aba5024f86e71e9631810bfdd6866ed2c8695bd7fa34b90e7ef59/textual-8.2.7.tar.gz", hash = "sha256:658f568ff81e30ed43890c3e07520390e5cf1b4763822006e060656b0a88f105", size = 1859249, upload-time = "2026-05-19T10:52:49.531Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a8/f5/c1e18bc0707300a0e90204343abbf7d7acd6fb7ebe03a6d4893b99a234b8/textual-8.2.7-py3-none-any.whl", hash = "sha256:4caaa13a90bc4cf9c6c862c067ccd34fe84e9c161710a2a907a8026313b6bd73", size = 731129, upload-time = "2026-05-19T10:52:51.773Z" },
+]
+
+[[package]]
+name = "textual-fspicker"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "textual" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/34/1d/1c078f971363d6b2fcfcccf3008b3c6d98cb78ba92d4d6152051bfeec76e/textual_fspicker-1.0.1.tar.gz", hash = "sha256:58f7fa983ded7a5ed69b7279f66de57a0ef6fad0e3acb622f217682e85986c9c", size = 16538, upload-time = "2026-05-20T15:56:36.264Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f7/f9/716c82823d1bd93b499a2ab42eaa8ca3c4d57211576c9b569b329a16e8e2/textual_fspicker-1.0.1-py3-none-any.whl", hash = "sha256:12ba71314790008c37f4bf9bb008e430b844bb63d9b615cd8738ca3c1fe1ebbb", size = 24949, upload-time = "2026-05-20T15:56:34.804Z" },
 ]
 
 [[package]]

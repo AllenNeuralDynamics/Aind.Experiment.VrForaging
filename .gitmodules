@@ -4,3 +4,6 @@
 [submodule "Aind.Physiology.Fip"]
 	path = Aind.Physiology.Fip
 	url = https://github.com/AllenNeuralDynamics/Aind.Physiology.Fip
+[submodule "Aind.Behavior.Device.Olfactometer"]
+	path = Aind.Behavior.Device.Olfactometer
+	url = https://github.com/AllenNeuralDynamics/Aind.Behavior.Device.Olfactometer

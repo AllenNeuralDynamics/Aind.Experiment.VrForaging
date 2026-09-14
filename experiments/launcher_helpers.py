@@ -19,11 +19,14 @@ from clabe.data_transfer.aind_watchdog import (
 from clabe.data_transfer.robocopy import RobocopyService, RobocopySettings
 from clabe.launcher import Launcher
 from clabe.logging import otel
-from clabe.pickers import ByAnimalModifier
-from clabe.pickers.dataverse import DataversePicker
+from clabe.modifiers import ByAnimalModifier
+from clabe.stores import Kind, Store
 from contraqctor.contract.json import SoftwareEvents
 
 logger = logging.getLogger(__name__)
+
+_TRAINER_STATE = Kind.from_trainer_state()
+_MANIPULATOR_POSITION = Kind(ManipulatorPosition, name="manipulator_init")
 
 
 def _dump_suggestion(suggestion: CurriculumSuggestion, session_directory: Path) -> Path:
@@ -35,14 +38,14 @@ def _dump_suggestion(suggestion: CurriculumSuggestion, session_directory: Path) 
 
 
 async def run_curriculum_if_applicable(
-    picker: DataversePicker,
+    store: Store,
     trainer_state: TrainerState | None,
     input_trainer_state_path: Path,
     launcher: Launcher,
 ) -> tuple[CurriculumSuggestion | None, Path | None, CurriculumSettings | None]:
     if (trainer_state is None) or (trainer_state.is_on_curriculum is False) or (trainer_state.stage is None):
         return None, None, None
-    picker.frontend.notify("Running curriculum evaluation...", ui.MessageLevel.INFO)
+    ui.notify("Running curriculum evaluation...", ui.MessageLevel.INFO)
     settings = CurriculumSettings(
         input_trainer_state=input_trainer_state_path.resolve(),
         data_directory=launcher.session_directory,
@@ -51,7 +54,7 @@ async def run_curriculum_if_applicable(
     await curriculum_app.run_async()
     suggestion = curriculum_app.process_suggestion()
     suggestion_path = _dump_suggestion(suggestion, launcher.session_directory)
-    picker.push_new_suggestion(suggestion.trainer_state)
+    store.write(_TRAINER_STATE, suggestion.trainer_state)
     return suggestion, suggestion_path, settings
 
 
@@ -71,10 +74,8 @@ def confirm_session_info(launcher: Launcher, session: Session, trainer_state: Tr
     )
 
 
-def run_data_qc(picker: DataversePicker, launcher: Launcher) -> None:
-    if not picker.frontend.prompt_confirm(
-        ui.ConfirmRequest(label="Would you like to generate a qc report?", default=False)
-    ):
+def run_data_qc(launcher: Launcher) -> None:
+    if not ui.prompt_confirm(ui.ConfirmRequest(label="Would you like to generate a qc report?", default=False)):
         return
     try:
         import webbrowser
@@ -82,17 +83,17 @@ def run_data_qc(picker: DataversePicker, launcher: Launcher) -> None:
         from aind_behavior_vr_foraging.data_qc.data_qc import make_qc_runner
         from contraqctor.qc.reporters import HtmlReporter
 
-        picker.frontend.notify("Running data QC...", ui.MessageLevel.INFO)
+        ui.notify("Running data QC...", ui.MessageLevel.INFO)
         vr_dataset = data_contract.dataset(launcher.session_directory)
         runner = make_qc_runner(vr_dataset)
         qc_path = launcher.session_directory / "Behavior" / "Logs" / "qc_report.html"
         reporter = HtmlReporter(output_path=qc_path)
         runner.run_all_with_progress(reporter=reporter)
-        picker.frontend.notify(f"QC report saved to {qc_path}", ui.MessageLevel.SUCCESS)
+        ui.notify(f"QC report saved to {qc_path}", ui.MessageLevel.SUCCESS)
         webbrowser.open(qc_path.as_uri(), new=2)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- QC failures should be reported without aborting the session
         logger.error("Failed to run data QC: %s", e)
-        picker.frontend.notify(f"Failed to run data QC: {e}", ui.MessageLevel.ERROR)
+        ui.notify(f"Failed to run data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
     fib_dir = launcher.session_directory / "fib"
@@ -101,20 +102,20 @@ def run_data_qc(picker: DataversePicker, launcher: Launcher) -> None:
     try:
         from aind_physiology_fip.data_qc import DataQcCli
 
-        picker.frontend.notify("Running FIP data QC...", ui.MessageLevel.INFO)
+        ui.notify("Running FIP data QC...", ui.MessageLevel.INFO)
         qc_assets_dir = launcher.session_directory / "Behavior" / "Logs" / "fip_qc_assets"
         for epoch in sorted(fib_dir.glob("fip_*")):
             DataQcCli(data_path=epoch, asset_path=qc_assets_dir).cli_cmd()
-        picker.frontend.notify(f"FIP QC assets saved to {qc_assets_dir}", ui.MessageLevel.SUCCESS)
-    except Exception as e:
+        ui.notify(f"FIP QC assets saved to {qc_assets_dir}", ui.MessageLevel.SUCCESS)
+    except Exception as e:  # noqa: BLE001 -- QC failures should be reported without aborting the session
         logger.error("Failed to run FIP data QC: %s", e)
-        picker.frontend.notify(f"Failed to run FIP data QC: {e}", ui.MessageLevel.ERROR)
+        ui.notify(f"Failed to run FIP data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
 
-def run_data_transfer(picker: DataversePicker, launcher: Launcher, session: Session) -> None:
-    if not picker.frontend.prompt_confirm(ui.ConfirmRequest(label="Would you like to transfer data?", default=True)):
-        picker.frontend.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
+def run_data_transfer(launcher: Launcher, session: Session) -> None:
+    if not ui.prompt_confirm(ui.ConfirmRequest(label="Would you like to transfer data?", default=True)):
+        ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
 
     watchdog_settings = WatchdogSettings()
@@ -130,9 +131,9 @@ def run_data_transfer(picker: DataversePicker, launcher: Launcher, session: Sess
                 exclude_dirs=["behavior-videos", "fib"],
             ),
         ).transfer()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- transfer failures are reported and retried by the watchdog
         logger.error("Initial data transfer failed: %s", e)
-        picker.frontend.notify(f"Initial data transfer failed: {e}", ui.MessageLevel.ERROR)
+        ui.notify(f"Initial data transfer failed: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
     WatchdogDataTransferService(
@@ -158,7 +159,7 @@ def run_vr_foraging_mappers(
         else repository_root
     )
 
-    launcher.frontend.notify("Running data mappers...", ui.MessageLevel.INFO)
+    ui.notify("Running data mappers...", ui.MessageLevel.INFO)
     DataMapperCli(
         data_path=launcher.session_directory,
         repository_path=vr_foraging_repository_path,
@@ -184,17 +185,20 @@ class ByAnimalManipulatorModifier(ByAnimalModifier[AindVrForagingRig]):
 
     def __init__(
         self,
-        subject_db_path: Path,
-        model_path: str,
-        model_name: str,
+        subject: str,
+        store: Store,
         *,
         launcher: Launcher,
-        **kwargs,
     ) -> None:
-        super().__init__(subject_db_path, model_path, model_name, **kwargs)
+        super().__init__(
+            subject,
+            store,
+            _MANIPULATOR_POSITION,
+            "manipulator.calibration.initial_position",
+        )
         self._launcher = launcher
 
-    def _process_before_dump(self) -> ManipulatorPosition:
+    def _process_before_update(self) -> ManipulatorPosition:
         _dataset = data_contract.dataset(self._launcher.session_directory)
         manipulator_parking_position: SoftwareEvents = cast(
             SoftwareEvents,

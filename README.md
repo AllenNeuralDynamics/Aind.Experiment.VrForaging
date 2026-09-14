@@ -20,27 +20,28 @@ This repository is a thin composition layer, not a standalone codebase. It stitc
 independent Bonsai/Python projects (one behavior repo, one-or-more physiology repos), plus a small
 amount of glue code:
 
-- **`Aind.Behavior.VrForaging/`** and **`Aind.Physiology.Fip/`** — git submodules pointing at
-  pinned releases of the [VrForaging](https://github.com/AllenNeuralDynamics/Aind.Behavior.VrForaging)
-  (behavior) and [FIP](https://github.com/AllenNeuralDynamics/Aind.Physiology.Fip) (physiology)
-  repositories. Additional physiology modalities are added as further `Aind.Physiology.*`
-  submodules. Each submodule provides its own Bonsai workflow (`src/main.bonsai`),
+- **`Aind.Behavior.VrForaging/`**, **`Aind.Physiology.Fip/`**, and
+  **`Aind.Behavior.Device.Olfactometer/`** — git submodules pointing at pinned revisions of the
+  [VrForaging](https://github.com/AllenNeuralDynamics/Aind.Behavior.VrForaging),
+  [FIP](https://github.com/AllenNeuralDynamics/Aind.Physiology.Fip), and
+  [Olfactometer](https://github.com/AllenNeuralDynamics/Aind.Behavior.Device.Olfactometer) repositories.
+  Each submodule provides its own Bonsai workflow (`src/main.bonsai`),
   rig/task-logic schemas, and data mappers, and is developed, tested, and released independently
   of this repository.
-- **`common/`** — a small, uninstalled local package (no `pyproject.toml`, just plain Python
-  importable because `main.py` runs from the repo root) holding launcher-orchestration helpers
-  shared across experiments: curriculum evaluation, session confirmation, data QC, data transfer,
-  data mappers, and the manipulator-position modifier.
-- **`main.py`** — the actual launcher script. It defines one or more `@experiment()`-decorated
-  functions (see [clabe](https://github.com/AllenNeuralDynamics/Aind.Clabe)'s experiment model) that
-  each describe one runnable protocol. Currently defined experiments:
+- **`experiments/`** — the experiment implementations and their shared launcher-orchestration
+  helpers. The olfactometer calibration experiment resolves its rig from the local
+  `AindBehaviorDeviceOlfactometer` configuration library.
+- **`main.py`** — the launcher registry. It imports the `@experiment()`-decorated functions so
+  [clabe](https://github.com/AllenNeuralDynamics/Aind.Clabe) can discover them. Currently defined
+  experiments:
   - `vr-foraging` — run VrForaging on its own, without FIP.
   - `vr-foraging-fip` — run VrForaging and FIP concurrently as a single combined session.
   - `calibration` — run only the VrForaging rig for calibration; nothing is recorded.
+  - `calibrate-olfactometer` — calibrate olfactometer hardware using its local rig configuration.
   - `recover-session` — reprocess (curriculum/mappers/QC/transfer) a session whose Bonsai
     workflow(s) already completed, e.g. after a launcher crash.
 - **`clabe`** (`aind-clabe`, installed as a dependency) is the framework that provides the
-  `Launcher`, pickers (rig/session/trainer-state selection), data-transfer services, curriculum
+  `Launcher`, stores (rig/task/trainer-state selection), data-transfer services, curriculum
   runner, and the generic multi-experiment CLI used to run `main.py`.
 - **`pyproject.toml`** / **`uv.lock`** define the single Python environment (managed by
   [`uv`](https://docs.astral.sh/uv/)) that all of the above run in. `[tool.ruff]` excludes the
@@ -70,7 +71,7 @@ also pass any `clabe` launcher flags (e.g. `--frontend`, `--debug-mode`) after `
 
 This repository has no automated tests of its own — the actual behavior lives in the
 submodules, which have their own test suites and CI. To validate a change here (e.g. bumping a
-submodule to a new release, or editing `main.py`/`common/`):
+submodule to a new release, or editing `main.py`/`experiments/`):
 
 1. Open a new branch off `main`.
 2. If you need to test against a new submodule release, update the pointer(s):
@@ -89,5 +90,5 @@ submodule to a new release, or editing `main.py`/`common/`):
    local/dev configuration) to confirm the VrForaging + physiology combination behaves correctly
    — there is no substitute for an end-to-end run here.
 5. Open a pull request back to `main`. CI (`.github/workflows/lint.yml`) will run `ruff format
-   --check` and `ruff check` against the root-level code (`main.py`, `common/`); it does not lint
+   --check` and `ruff check` against the root-level code (`main.py`, `experiments/`); it does not lint
    the submodules.

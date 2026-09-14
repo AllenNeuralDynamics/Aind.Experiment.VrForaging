@@ -1,4 +1,4 @@
-"""Shared CLABE launcher helpers for the Aind.Behavior.VrForaging + Physiology experiments."""
+"""CLABE experiments and their shared launcher helpers."""
 
 from .launcher_helpers import (
     ByAnimalManipulatorModifier,

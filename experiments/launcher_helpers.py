@@ -91,7 +91,7 @@ def run_data_qc(launcher: Launcher) -> None:
         runner.run_all_with_progress(reporter=reporter)
         ui.notify(f"QC report saved to {qc_path}", ui.MessageLevel.SUCCESS)
         webbrowser.open(qc_path.as_uri(), new=2)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- QC failures should be reported without aborting the session
         logger.error("Failed to run data QC: %s", e)
         ui.notify(f"Failed to run data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
@@ -107,7 +107,7 @@ def run_data_qc(launcher: Launcher) -> None:
         for epoch in sorted(fib_dir.glob("fip_*")):
             DataQcCli(data_path=epoch, asset_path=qc_assets_dir).cli_cmd()
         ui.notify(f"FIP QC assets saved to {qc_assets_dir}", ui.MessageLevel.SUCCESS)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- QC failures should be reported without aborting the session
         logger.error("Failed to run FIP data QC: %s", e)
         ui.notify(f"Failed to run FIP data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
@@ -131,7 +131,7 @@ def run_data_transfer(launcher: Launcher, session: Session) -> None:
                 exclude_dirs=["behavior-videos", "fib"],
             ),
         ).transfer()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- transfer failures are reported and retried by the watchdog
         logger.error("Initial data transfer failed: %s", e)
         ui.notify(f"Initial data transfer failed: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)

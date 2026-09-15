@@ -1,3 +1,3 @@
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location -Path (Split-Path -Parent $scriptPath)
-uv run main.py
+uv run clabe run main.py

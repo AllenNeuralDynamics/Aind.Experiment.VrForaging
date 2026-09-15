@@ -26,28 +26,40 @@ wheels = [
 
 [[package]]
 name = "aind-behavior-device-olfactometer"
-version = "0.2.0rc3"
+version = "0.2.1"
 source = { editable = "Aind.Behavior.Device.Olfactometer" }
 dependencies = [
     { name = "aind-behavior-services" },
     { name = "pydantic-settings" },
 ]
 
+[package.optional-dependencies]
+data-mappers = [
+    { name = "aind-clabe", extra = ["aind-services"] },
+    { name = "aind-data-schema" },
+    { name = "aind-data-schema-models" },
+    { name = "gitpython" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aind-behavior-services", specifier = ">=0.13.5,<0.14" },
+    { name = "aind-clabe", extras = ["aind-services"], marker = "extra == 'data-mappers'", specifier = ">=0.12.2" },
+    { name = "aind-data-schema", marker = "extra == 'data-mappers'", specifier = ">=2.7.1" },
+    { name = "aind-data-schema-models", marker = "extra == 'data-mappers'" },
     { name = "contraqctor", marker = "extra == 'data'", specifier = ">=0.5.3,<0.6" },
+    { name = "gitpython", marker = "extra == 'data-mappers'" },
     { name = "jupyter", marker = "extra == 'data'" },
     { name = "matplotlib", marker = "extra == 'data'" },
     { name = "numpy", marker = "extra == 'data'" },
     { name = "pandas", marker = "extra == 'data'" },
     { name = "pydantic-settings" },
 ]
-provides-extras = ["data"]
+provides-extras = ["data", "data-mappers"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "aind-behavior-device-olfactometer", extras = ["data"] },
+    { name = "aind-behavior-device-olfactometer", extras = ["data", "data-mappers"] },
     { name = "codespell" },
     { name = "ruff" },
 ]
@@ -170,7 +182,7 @@ dev = [
 
 [[package]]
 name = "aind-clabe"
-version = "0.13.0rc1"
+version = "0.13.0rc2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -185,9 +197,9 @@ dependencies = [
     { name = "textual-fspicker" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/2f/1eb5fb14594346465e0e5f7fa01e7150329288c0535779206b7e9755fecb/aind_clabe-0.13.0rc1.tar.gz", hash = "sha256:f2bd077d0a39b9f311ec20c456c1e7237ba199dd04929710ab66b55948fcc710", size = 129222, upload-time = "2026-09-13T19:14:00.701Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/02/d851e1c96c4ca3e6c40c4d5208caf570ed32b72e0d037471d6f0771698d4/aind_clabe-0.13.0rc2.tar.gz", hash = "sha256:827141bce2cedfa589a05e22dc522f5051f4d3dd8fd50d3190fd7f6e3c5aac5f", size = 129232, upload-time = "2026-09-15T16:27:41.706Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5f/66/1997e39625d90bf299646cc46a5a121dd2979914db4813f255e6798b04ee/aind_clabe-0.13.0rc1-py3-none-any.whl", hash = "sha256:11e810dd497e868c03bdf3ec7887fcbeea7d49536a3399354f74b3893efe8151", size = 162988, upload-time = "2026-09-13T19:13:59.686Z" },
+    { url = "https://files.pythonhosted.org/packages/47/20/d72817c245f824b9d289742222575a69a6c94dbd79b57f89e39cf5a5c7ee/aind_clabe-0.13.0rc2-py3-none-any.whl", hash = "sha256:90f28cf180c7371bdd13c2664f445547d1cf5879473828e032502974a7392a73", size = 162986, upload-time = "2026-09-15T16:27:40.394Z" },
 ]
 
 [package.optional-dependencies]
@@ -255,10 +267,10 @@ wheels = [
 
 [[package]]
 name = "aind-experiment-vr-foraging"
-version = "0.3.0"
+version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "aind-behavior-device-olfactometer" },
+    { name = "aind-behavior-device-olfactometer", extra = ["data-mappers"] },
     { name = "aind-behavior-vr-foraging", extra = ["data"] },
     { name = "aind-behavior-vr-foraging-curricula" },
     { name = "aind-behavior-vr-foraging-data-mappers" },
@@ -269,11 +281,11 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aind-behavior-device-olfactometer", editable = "Aind.Behavior.Device.Olfactometer" },
+    { name = "aind-behavior-device-olfactometer", extras = ["data-mappers"], editable = "Aind.Behavior.Device.Olfactometer" },
     { name = "aind-behavior-vr-foraging", extras = ["data"], editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" },
     { name = "aind-behavior-vr-foraging-curricula", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" },
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
-    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.0rc1" },
+    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.0rc2" },
     { name = "aind-physiology-fip", editable = "Aind.Physiology.Fip" },
     { name = "ruff" },
 ]

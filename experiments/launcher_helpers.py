@@ -7,8 +7,8 @@ from aind_behavior_curriculum import TrainerState
 from aind_behavior_services.rig.aind_manipulator import ManipulatorPosition
 from aind_behavior_services.session import Session
 from aind_behavior_vr_foraging import data_contract
-from aind_behavior_vr_foraging.data_mappers import DataMapperCli
 from aind_behavior_vr_foraging.rig import AindVrForagingRig
+from aind_behavior_vr_foraging_data_mappers import DataMapperCli
 from aind_physiology_fip.data_mappers import ProtoAcquisitionMapper
 from clabe import ui
 from clabe.apps import CurriculumApp, CurriculumSettings, CurriculumSuggestion

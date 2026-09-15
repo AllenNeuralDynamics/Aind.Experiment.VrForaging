@@ -5,7 +5,8 @@ description = "A thin wrapper that runs Aind.Behavior.VrForaging + Physiology ex
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "aind-behavior-vr-foraging[data, mappers]",
+    "aind-behavior-vr-foraging[data]",
+    "aind-behavior-vr-foraging-data-mappers",
     "aind-behavior-vr-foraging-curricula",
     "aind-behavior-device-olfactometer",
     "aind-physiology-fip",
@@ -16,6 +17,7 @@ dependencies = [
 
 [tool.uv.sources]
 aind-behavior-vr-foraging = { path = "./Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging", editable = true }
+aind-behavior-vr-foraging-data-mappers = { path = "./Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers", editable = true }
 aind-behavior-vr-foraging-curricula = { path = "./Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula", editable = true }
 aind-behavior-device-olfactometer = { path = "./Aind.Behavior.Device.Olfactometer", editable = true }
 aind-physiology-fip = { path = "./Aind.Physiology.Fip", editable = true }

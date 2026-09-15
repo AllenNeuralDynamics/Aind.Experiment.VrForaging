@@ -1,6 +1,6 @@
 [project]
 name = "aind-experiment-vr-foraging"
-version = "0.3.0"
+version = "0.0.0"
 description = "A thin wrapper that runs Aind.Behavior.VrForaging + Physiology experiments"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -8,9 +8,9 @@ dependencies = [
     "aind-behavior-vr-foraging[data]",
     "aind-behavior-vr-foraging-data-mappers",
     "aind-behavior-vr-foraging-curricula",
-    "aind-behavior-device-olfactometer",
+    "aind-behavior-device-olfactometer[data-mappers]",
     "aind-physiology-fip",
-    "aind-clabe[aind-services, otel]>=0.13.0rc1",
+    "aind-clabe[aind-services, otel]>=0.13.0rc2",
     "ruff"
 ]
 

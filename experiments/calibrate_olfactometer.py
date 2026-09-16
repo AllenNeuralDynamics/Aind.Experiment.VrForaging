@@ -48,7 +48,7 @@ def _calibration_session(launcher: Launcher) -> Session:
         # AIND marks calibration assets with this subject id, and it is what the data
         # mapper writes into the acquisition and subject metadata.
         subject=_CALIBRATION_SUBJECT_ID,
-        experiment=OlfactometerCalibrationLogic.name,
+        experiment=OlfactometerCalibrationLogic.model_fields["name"].default,
         date=utcnow(),
         experimenter=experimenter,
     )

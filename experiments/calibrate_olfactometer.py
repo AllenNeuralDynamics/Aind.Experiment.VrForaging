@@ -87,7 +87,7 @@ def _run_data_transfer(launcher: Launcher, session: Session) -> None:
 
     watchdog_settings = WatchdogSettings()
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
-    watchdog_settings.job_type = "default"
+    watchdog_settings.job_type = "upload_only_v2"
     WatchdogDataTransferService(
         source=launcher.session_directory,
         settings=watchdog_settings,

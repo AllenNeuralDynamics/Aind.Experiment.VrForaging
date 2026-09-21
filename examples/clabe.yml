@@ -9,8 +9,8 @@ watchdog:
   s3_bucket: "default"
 
 curriculum:
-  script: "curriculum run"
-  project_directory: "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula"
+  script: ["curriculum", "run"]
+  project_directory: "Aind.Behavior.VrForaging"
 
 dataverse:
   tenant_id: "32669cd6-737f-4b39-8bdd-d6951120d3fc"

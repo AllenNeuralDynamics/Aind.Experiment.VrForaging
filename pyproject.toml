@@ -10,7 +10,7 @@ dependencies = [
     "aind-behavior-vr-foraging-curricula",
     "aind-behavior-device-olfactometer[data-mappers]",
     "aind-physiology-fip",
-    "aind-clabe[aind-services, otel]>=0.13.0",
+    "aind-clabe[aind-services, otel]>=0.13.2",
     "ruff"
 ]
 

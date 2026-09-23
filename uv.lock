@@ -182,7 +182,7 @@ dev = [
 
 [[package]]
 name = "aind-clabe"
-version = "0.13.0"
+version = "0.13.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -197,9 +197,9 @@ dependencies = [
     { name = "textual-fspicker" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/01/cd/f93849b6bfbbfe44ecfafe188d30d36290845d8cef05ea257bb2c49104c1/aind_clabe-0.13.0.tar.gz", hash = "sha256:5ea96c15793bc018d45d2ab9f5a1ec4be78e986c55c3902fc0b31fbfbff15f10", size = 130506, upload-time = "2026-09-16T15:50:31.288Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b8/86/223c8ef1fcb812907d2dc5239d14b023b7df1f4745996f26b2da20d09983/aind_clabe-0.13.2.tar.gz", hash = "sha256:2501343f6fa1369e3409340a84b5b3e8ac42c4c5168bc0e8e73fd3f4300e17b1", size = 132385, upload-time = "2026-09-23T04:35:01.954Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/93/68461648110c3e150448de8136b29fba4e1f46baae722ebaf7210ef16984/aind_clabe-0.13.0-py3-none-any.whl", hash = "sha256:5529cb1a24887274d989c668830d2dde31d36251ea7da5af1388a883897b1987", size = 164347, upload-time = "2026-09-16T15:50:30.223Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/19/3ba88d319839905600fbe6103bd268da11c0eeb33c52ffebda041a527a9e/aind_clabe-0.13.2-py3-none-any.whl", hash = "sha256:e8005c4edca3864d16acee539e456b11903659f107a6d4a2ee1947ed305cc5c0", size = 166308, upload-time = "2026-09-23T04:35:00.584Z" },
 ]
 
 [package.optional-dependencies]
@@ -285,7 +285,7 @@ requires-dist = [
     { name = "aind-behavior-vr-foraging", extras = ["data"], editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" },
     { name = "aind-behavior-vr-foraging-curricula", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" },
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
-    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.0" },
+    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.2" },
     { name = "aind-physiology-fip", editable = "Aind.Physiology.Fip" },
     { name = "ruff" },
 ]

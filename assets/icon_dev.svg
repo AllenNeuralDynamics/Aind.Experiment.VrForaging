@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:c2pa="http://c2pa.org/manifest" viewBox="0 0 512 512">
+  <!-- Generator: Adobe Illustrator 30.8.2, SVG Export Plug-In . SVG Version: 2.1.4 Build 7)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill-opacity: .06;
+      }
+
+      .st0, .st1 {
+        fill: #fff;
+      }
+
+      .st2 {
+        stroke: #ff7185;
+      }
+
+      .st2, .st3 {
+        fill: none;
+        stroke-linecap: round;
+        stroke-width: 4px;
+      }
+
+      .st4 {
+        fill: #a93d61;
+      }
+
+      .st5 {
+        fill: #124661;
+      }
+
+      .st3 {
+        stroke: #79a9c2;
+      }
+
+      .st6 {
+        fill: #23384a;
+      }
+
+      .st7 {
+        fill: #27829d;
+      }
+
+      .st8 {
+        fill: #49c7d5;
+      }
+
+      .st9 {
+        fill: #ff8b9b;
+      }
+
+      .st1 {
+        fill-opacity: .05;
+      }
+
+      .st10 {
+        fill: #0a111c;
+        opacity: .79;
+        stroke: #49c7d5;
+        stroke-width: 6px;
+      }
+
+      .st11 {
+        fill: #c8d8e4;
+      }
+    </style>
+  </defs>
+  <g id="background">
+    <rect id="bg-outer" class="st5" width="512" height="512" rx="92" ry="92"/>
+    <rect id="bg-inner" class="st7" x="8" y="8" width="496" height="496" rx="84" ry="84"/>
+    <rect id="bg-sheen" class="st1" x="8" y="8" width="496" height="218" rx="84" ry="84"/>
+  </g>
+  <path id="ear-left-outer" class="st11" d="M93.86,50.65h7.6c37.78,0,68.4,31.94,68.4,71.33h0c0,39.39-30.62,71.33-68.4,71.33h-7.6c-37.78,0-68.4-31.94-68.4-71.33h0c0-39.39,30.62-71.33,68.4-71.33Z"/>
+  <path id="ear-left-inner" class="st8" d="M93.86,74.88h2.53c25.18,0,45.6,19.88,45.6,44.41h0c0,24.53-20.42,44.41-45.6,44.41h-2.53c-25.18,0-45.6-19.88-45.6-44.41h0c0-24.53,20.42-44.41,45.6-44.41Z"/>
+  <path id="ear-right-outer" class="st11" d="M410.54,50.65h7.6c37.78,0,68.4,31.94,68.4,71.33h0c0,39.39-30.62,71.33-68.4,71.33h-7.6c-37.78,0-68.4-31.94-68.4-71.33h0c0-39.39,30.62-71.33,68.4-71.33Z"/>
+  <path id="ear-right-inner" class="st8" d="M410.54,74.88h2.53c25.18,0,45.6,19.88,45.6,44.41h0c0,24.53-20.42,44.41-45.6,44.41h-2.53c-25.18,0-45.6-19.88-45.6-44.41h0c0-24.53,20.42-44.41,45.6-44.41Z"/>
+  <rect id="head-base" class="st11" x="86" y="160.12" width="340" height="276.88" rx="44" ry="44"/>
+  <rect id="head-shadow-left" class="st6" x="77.5" y="214.62" width="18.9" height="78.75" rx="9" ry="9"/>
+  <rect id="head-shadow-right" class="st6" x="415.6" y="214.63" width="18.9" height="78.75" rx="9" ry="9"/>
+  <g id="icon-sheen">
+    <path class="st0" d="M92,8h328c46.39,0,84,12.54,84,28h0c0,15.46-37.61,28-84,28H92c-46.39,0-84-12.54-84-28h0c0-15.46,37.61-28,84-28Z"/>
+  </g>
+  <g>
+    <line id="whisker-right-mid" class="st3" x1="377.37" y1="383" x2="486.54" y2="383"/>
+    <line id="whisker-right-bottom" class="st3" x1="377.37" y1="391" x2="482.73" y2="408"/>
+    <line id="whisker-right-bottom1" class="st3" x1="482.73" y1="358" x2="377.37" y2="375"/>
+  </g>
+  <g id="mouth">
+    <path id="mouth-curve" class="st2" d="M255.84,407.96c3.21,12.14,16.44,21.27,39.68,27.39"/>
+  </g>
+  <g id="mouth1">
+    <path id="mouth-curve1" class="st2" d="M216.16,435.35c23.24-6.11,36.46-15.24,39.68-27.39"/>
+  </g>
+  <g>
+    <line id="whisker-right-mid1" class="st3" x1="25.46" y1="383" x2="134.63" y2="383"/>
+    <line id="whisker-right-bottom2" class="st3" x1="29.27" y1="408" x2="134.63" y2="391"/>
+    <line id="whisker-right-bottom3" class="st3" x1="134.63" y1="375" x2="29.27" y2="358"/>
+  </g>
+  <path id="nose-base" class="st9" d="M228,330.69h56c9.94,0,18,8.06,18,18v14.47c0,9.94-8.06,18-18,18h-56c-9.94,0-18-8.06-18-18v-14.47c0-9.94,8.06-18,18-18Z"/>
+  <path class="st4" d="M231.7,359.12c5.86,1.74,10.15,6.63,9.58,10.93s-5.78,6.37-11.65,4.63c-5.86-1.74-10.15-6.63-9.58-10.93s5.78-6.37,11.65-4.63Z"/>
+  <path class="st4" d="M280.3,359.12c-5.86,1.74-10.15,6.63-9.58,10.93s5.78,6.37,11.65,4.63c5.86-1.74,10.15-6.63,9.58-10.93s-5.78-6.37-11.65-4.63Z"/>
+  <path id="goggle-body-main" class="st10" d="M122,191h268c15.46,0,28,12.54,28,28v84c0,15.46-8.95,23.21-28,28-23.76,5.98-74.98,8.38-98,0-11.04-4.02-24.25-30.19-36-30.19s-24.96,26.17-36,30.19c-23.02,8.38-67.81,6.58-98,0-15.11-3.29-28-12.54-28-28v-84c0-15.46,12.54-28,28-28Z"/>
+
+  <g id="dev-tag" aria-label="DEV" transform="translate(-253 -240.5) scale(1.5)">
+    <path d="M364 420h120c10 0 18 8 18 18v38c0 10-8 18-18 18H322z" fill="#F23855"/>
+    <text x="414" y="469" text-anchor="middle" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="35" font-weight="700" letter-spacing="1">DEV</text>
+  </g>
+</svg>

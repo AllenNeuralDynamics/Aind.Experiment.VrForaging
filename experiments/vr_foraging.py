@@ -104,7 +104,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     if fip_rig is not None:
         fip_app = AindBehaviorServicesBonsaiApp(
             workflow=Path(r"./Aind.Physiology.Fip/src/main.bonsai"),
-            executable=Path(r"./Aind.Physiology.Fip/bonsai/bonsai.exe"),
+            executable=Path(r"./Aind.Physiology.Fip/.bonsai/bonsai.exe"),
             temp_directory=launcher.temp_dir,
             rig=fip_rig,
             session=session,

@@ -96,6 +96,11 @@ def run_data_qc(launcher: Launcher) -> None:
         ui.notify(f"Failed to run data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
+    run_fip_data_qc(launcher)
+
+
+def run_fip_data_qc(launcher: Launcher) -> None:
+    """Run FIP QC when the session contains FIP recordings."""
     fib_dir = launcher.session_directory / "fib"
     if not fib_dir.exists():
         return
@@ -103,7 +108,7 @@ def run_data_qc(launcher: Launcher) -> None:
         from aind_physiology_fip.data_qc import DataQcCli
 
         ui.notify("Running FIP data QC...", ui.MessageLevel.INFO)
-        qc_assets_dir = launcher.session_directory / "Behavior" / "Logs" / "fip_qc_assets"
+        qc_assets_dir = launcher.session_directory / "FIB" / "fip_qc_assets"
         for epoch in sorted(fib_dir.glob("fip_*")):
             DataQcCli(data_path=epoch, asset_path=qc_assets_dir).cli_cmd()
         ui.notify(f"FIP QC assets saved to {qc_assets_dir}", ui.MessageLevel.SUCCESS)

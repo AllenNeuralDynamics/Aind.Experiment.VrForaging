@@ -36,6 +36,7 @@ amount of glue code:
   experiments:
   - `vr-foraging` — run VrForaging on its own, without FIP.
   - `vr-foraging-fip` — run VrForaging and FIP concurrently as a single combined session.
+  - `fip` — run FIP acquisition on its own, without the behavior component.
   - `calibration` — run only the VrForaging rig for calibration; nothing is recorded.
   - `calibrate-olfactometer` — calibrate olfactometer hardware using its local rig configuration.
   - `recover-session` — reprocess (curriculum/mappers/QC/transfer) a session whose Bonsai

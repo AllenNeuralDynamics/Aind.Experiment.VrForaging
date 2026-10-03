@@ -6,6 +6,7 @@ Run with the generic clabe CLI, e.g.:
 """
 
 from experiments.calibrate_olfactometer import calibrate_olfactometer
+from experiments.fip import fip_protocol
 from experiments.vr_foraging import (
     calibration_protocol,
     recover_session,
@@ -16,6 +17,7 @@ from experiments.vr_foraging import (
 __all__ = [
     "calibrate_olfactometer",
     "calibration_protocol",
+    "fip_protocol",
     "recover_session",
     "vr_foraging_fip_protocol",
     "vr_foraging_protocol",

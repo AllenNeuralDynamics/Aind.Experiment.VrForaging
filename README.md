@@ -43,7 +43,8 @@ amount of glue code:
     workflow(s) already completed, e.g. after a launcher crash.
 - **`clabe`** (`aind-clabe`, installed as a dependency) is the framework that provides the
   `Launcher`, stores (rig/task/trainer-state selection), data-transfer services, curriculum
-  runner, and the generic multi-experiment CLI used to run `main.py`.
+  runner, Smartsheet schedule lookups for scientific contacts and transfer metadata, and the
+  generic multi-experiment CLI used to run `main.py`.
 - **`pyproject.toml`** / **`uv.lock`** define the single Python environment (managed by
   [`uv`](https://docs.astral.sh/uv/)) that all of the above run in. `[tool.ruff]` excludes the
   submodules from linting — they are linted by their own CI.

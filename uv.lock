@@ -182,7 +182,7 @@ dev = [
 
 [[package]]
 name = "aind-clabe"
-version = "0.13.6"
+version = "0.13.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -197,9 +197,9 @@ dependencies = [
     { name = "textual-fspicker" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/44/b1/d11975a3b4e9413597bb00cf519fa8dcb3603b02830b20b1c35a8c4b6441/aind_clabe-0.13.6.tar.gz", hash = "sha256:39a945b29d98a9ea738ed95c8a6f714fbf1e2bfa4d809cf323f2e27bf71611c5", size = 136581, upload-time = "2026-10-03T19:23:23.033Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/39/1269e0db941be899f4339566d41867eaac62da107d78da46bdb37708371d/aind_clabe-0.13.8.tar.gz", hash = "sha256:b5559bebcc124662fab2d839b6e7ec3c2d8f03029663973d3fb0d859a9f65eb1", size = 137280, upload-time = "2026-10-04T01:30:15.036Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/99/a52b39349ebfc1d74a55b31cc173673d38b904918cafed4c2c5aa92d9cf6/aind_clabe-0.13.6-py3-none-any.whl", hash = "sha256:d191b0035cdfde0bd9fd34635f3ce5f8c70820730c9e7d6fc431d5e8ed993321", size = 171357, upload-time = "2026-10-03T19:23:21.71Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/73/3a3c5660cdef2ce9e32c5a397fa3051ff29e2ece26b3434a666ca261beaf/aind_clabe-0.13.8-py3-none-any.whl", hash = "sha256:85fa79439e3ca8c839daa83b01d085cde40f9d4a55dc38c86f84f15c7590a3c7", size = 172030, upload-time = "2026-10-04T01:30:13.834Z" },
 ]
 
 [package.optional-dependencies]
@@ -285,7 +285,7 @@ requires-dist = [
     { name = "aind-behavior-vr-foraging", extras = ["data"], editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" },
     { name = "aind-behavior-vr-foraging-curricula", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" },
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
-    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.6" },
+    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.8" },
     { name = "aind-physiology-fip", editable = "Aind.Physiology.Fip" },
     { name = "ruff" },
 ]
@@ -1661,11 +1661,11 @@ wheels = [
 
 [[package]]
 name = "platformdirs"
-version = "4.12.2"
+version = "4.12.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/17/c8/721b3855fe457da514fe249247d404b9b39c5d16532278f70ebaa6acf18b/platformdirs-4.12.2.tar.gz", hash = "sha256:eab5f70271a490ef74618bb314fbb86e3c7e82fa3b9c922c2ea0e0a1a155d329", size = 59353, upload-time = "2026-09-29T18:27:56.009Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/42/23/4a86fc741c38c5b69792a4ef954b281afa69bea9f083f881de1b0d23bc07/platformdirs-4.12.3.tar.gz", hash = "sha256:427fc0bb321ae0c5b037fa03238ca74820437be162e78b4848c4d4055b9b766c", size = 59538, upload-time = "2026-10-03T23:40:46.595Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/89/446044f33aba0348d35e433f56d12206d010a5281a1df54054d4cfb82388/platformdirs-4.12.2-py3-none-any.whl", hash = "sha256:29dbf06d96c500bc6bdbce75fb0a14d63279c93b1842f97e72a135b33e856983", size = 32457, upload-time = "2026-09-29T18:27:54.43Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/9b/6ce1ead737fe496611bda600c263b9a11ae7bd8f41bb13f9bd7e0a2c37a4/platformdirs-4.12.3-py3-none-any.whl", hash = "sha256:080f3b39423b5abfca9a23d84c4e9795f54d395cd8459867a8ded44084fcd5f8", size = 32493, upload-time = "2026-10-03T23:40:45.104Z" },
 ]
 
 [[package]]

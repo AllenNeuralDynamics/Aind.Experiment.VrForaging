@@ -21,6 +21,7 @@ from clabe.launcher import Launcher
 from clabe.logging import otel
 from clabe.modifiers import ByAnimalModifier
 from clabe.stores import Kind, Store
+from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 from contraqctor.contract.json import SoftwareEvents
 
 logger = logging.getLogger(__name__)
@@ -96,6 +97,11 @@ def run_data_qc(launcher: Launcher) -> None:
         ui.notify(f"Failed to run data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
+    run_fip_data_qc(launcher)
+
+
+def run_fip_data_qc(launcher: Launcher) -> None:
+    """Run FIP QC when the session contains FIP recordings."""
     fib_dir = launcher.session_directory / "fib"
     if not fib_dir.exists():
         return
@@ -103,7 +109,7 @@ def run_data_qc(launcher: Launcher) -> None:
         from aind_physiology_fip.data_qc import DataQcCli
 
         ui.notify("Running FIP data QC...", ui.MessageLevel.INFO)
-        qc_assets_dir = launcher.session_directory / "Behavior" / "Logs" / "fip_qc_assets"
+        qc_assets_dir = launcher.session_directory / "FIB" / "fip_qc_assets"
         for epoch in sorted(fib_dir.glob("fip_*")):
             DataQcCli(data_path=epoch, asset_path=qc_assets_dir).cli_cmd()
         ui.notify(f"FIP QC assets saved to {qc_assets_dir}", ui.MessageLevel.SUCCESS)
@@ -113,13 +119,32 @@ def run_data_qc(launcher: Launcher) -> None:
         otel.record_exception(e)
 
 
-def run_data_transfer(launcher: Launcher, session: Session) -> None:
+def run_data_transfer(
+    launcher: Launcher,
+    session: Session,
+    *,
+    smartsheet_client: SmartsheetScheduleClient | None = None,
+) -> None:
+    """Transfer session data, using Smartsheet metadata when a client is provided."""
     if not ui.prompt_confirm(ui.ConfirmRequest(label="Would you like to transfer data?", default=True)):
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
 
-    watchdog_settings = WatchdogSettings()
+    if smartsheet_client is not None:
+        watchdog_settings = WatchdogSettings(project_name=smartsheet_client.get_project_name(session))
+    else:
+        watchdog_settings = WatchdogSettings()
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
+
+    transfer_service = WatchdogDataTransferService(
+        source=launcher.session_directory,
+        settings=watchdog_settings,
+        session=session,
+    )
+    if smartsheet_client is not None:
+        smartsheet_row = smartsheet_client.get_row(session.subject)
+        if smartsheet_row is not None:
+            transfer_service.add_data_description_tags(*smartsheet_row.tags)
 
     # Immediate robocopy to move behavior data off the rig before triggering watchdog.
     try:
@@ -136,11 +161,7 @@ def run_data_transfer(launcher: Launcher, session: Session) -> None:
         ui.notify(f"Initial data transfer failed: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
-    WatchdogDataTransferService(
-        source=launcher.session_directory,
-        settings=watchdog_settings,
-        session=session,
-    ).transfer()
+    transfer_service.transfer()
 
 
 def run_vr_foraging_mappers(

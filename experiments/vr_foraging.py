@@ -19,6 +19,7 @@ from clabe.logging import otel
 from clabe.session import SessionBuilder
 from clabe.stores import CompositeStore, Kind, LocalFileStore, Store
 from clabe.stores.dataverse import DataverseStore
+from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 
 from .launcher_helpers import (
     ByAnimalManipulatorModifier,
@@ -51,7 +52,8 @@ def _behavior_store(session: Session) -> Store:
 async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> None:
     """Shared implementation for the ``vr-foraging`` and ``vr-foraging-fip`` experiments."""
     # Start experiment setup
-    session = SessionBuilder(launcher).build()
+    smartsheet_client = SmartsheetScheduleClient()
+    session = smartsheet_client.add_scientific_contact(SessionBuilder(launcher).build())
     store = _behavior_store(session)
 
     # Fetch the task settings
@@ -153,7 +155,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
 
     # Watchdog
     launcher.copy_logs()
-    run_data_transfer(launcher, session)
+    run_data_transfer(launcher, session, smartsheet_client=smartsheet_client)
 
 
 @experiment(name="vr-foraging", order=0)
@@ -270,4 +272,4 @@ async def recover_session(launcher: Launcher) -> None:
         )
 
     run_data_qc(launcher)
-    run_data_transfer(launcher, session_model)
+    run_data_transfer(launcher, session_model, smartsheet_client=SmartsheetScheduleClient())

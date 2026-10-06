@@ -32,6 +32,7 @@ async def fip_protocol(launcher: Launcher) -> None:
         temp_directory=launcher.temp_dir,
         rig=rig,
         session=session,
+        is_editor_mode=False,
     ).run_async()
 
     run_fip_mapper(launcher)

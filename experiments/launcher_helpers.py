@@ -119,6 +119,16 @@ def run_fip_data_qc(launcher: Launcher) -> None:
         otel.record_exception(e)
 
 
+def add_scientific_contact_or_warn(smartsheet_client: SmartsheetScheduleClient, session: Session) -> Session:
+    """Adds the scientific contact to the session, or warns and returns it unchanged (e.g. test runs)."""
+    try:
+        return smartsheet_client.add_scientific_contact(session)
+    except ValueError as e:
+        logger.warning("Could not add scientific contact from Smartsheet: %s", e)
+        ui.notify(f"Continuing without a scientific contact: {e}", ui.MessageLevel.WARNING)
+        return session
+
+
 def run_data_transfer(
     launcher: Launcher,
     session: Session,
@@ -130,10 +140,13 @@ def run_data_transfer(
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
 
+    watchdog_settings = WatchdogSettings()
     if smartsheet_client is not None:
-        watchdog_settings = WatchdogSettings(project_name=smartsheet_client.get_project_name(session))
-    else:
-        watchdog_settings = WatchdogSettings()
+        try:
+            watchdog_settings = WatchdogSettings(project_name=smartsheet_client.get_project_name(session))
+        except ValueError as e:
+            logger.warning("Could not get project name from Smartsheet: %s", e)
+            ui.notify(f"Using the default project name for data transfer: {e}", ui.MessageLevel.WARNING)
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
 
     transfer_service = WatchdogDataTransferService(

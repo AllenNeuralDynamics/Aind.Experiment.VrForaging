@@ -23,6 +23,7 @@ from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 
 from .launcher_helpers import (
     ByAnimalManipulatorModifier,
+    add_scientific_contact_or_warn,
     confirm_session_info,
     run_curriculum_if_applicable,
     run_data_qc,
@@ -53,7 +54,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     """Shared implementation for the ``vr-foraging`` and ``vr-foraging-fip`` experiments."""
     # Start experiment setup
     smartsheet_client = SmartsheetScheduleClient()
-    session = smartsheet_client.add_scientific_contact(SessionBuilder(launcher).build())
+    session = add_scientific_contact_or_warn(smartsheet_client, SessionBuilder(launcher).build())
     store = _behavior_store(session)
 
     # Fetch the task settings

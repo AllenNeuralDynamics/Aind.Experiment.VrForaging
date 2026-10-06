@@ -110,6 +110,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
             temp_directory=launcher.temp_dir,
             rig=fip_rig,
             session=session,
+            is_editor_mode=False,
         )
         await asyncio.gather(bonsai_app.run_async(), fip_app.run_async())
     else:

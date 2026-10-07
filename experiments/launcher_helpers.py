@@ -146,7 +146,12 @@ def run_data_transfer(
             watchdog_settings = WatchdogSettings(project_name=smartsheet_client.get_project_name(session))
         except ValueError as e:
             logger.warning("Could not get project name from Smartsheet: %s", e)
-            ui.notify(f"Using the default project name for data transfer: {e}", ui.MessageLevel.WARNING)
+            ui.notify(f"Could not get the project name from Smartsheet: {e}", ui.MessageLevel.WARNING)
+            if not ui.prompt_confirm(
+                ui.ConfirmRequest(label="Continue the data transfer with the default project name?", default=False)
+            ):
+                ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
+                return
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
 
     transfer_service = WatchdogDataTransferService(

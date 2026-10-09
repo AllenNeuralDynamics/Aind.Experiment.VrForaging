@@ -25,6 +25,7 @@ from .launcher_helpers import (
     ByAnimalManipulatorModifier,
     add_scientific_contact_or_warn,
     confirm_session_info,
+    disable_sniff_detector_without_thermistor,
     run_curriculum_if_applicable,
     run_data_qc,
     run_data_transfer,
@@ -65,6 +66,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     # Fetch rig settings
     logger.info("Pick VR Foraging rig...")
     rig = store.resolve(_VR_RIG)
+    disable_sniff_detector_without_thermistor(smartsheet_client, session, rig)
     fip_rig = None
     if with_fip:
         logger.info("Pick FIP rig...")

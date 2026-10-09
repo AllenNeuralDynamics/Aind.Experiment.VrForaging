@@ -129,6 +129,21 @@ def add_scientific_contact_or_warn(smartsheet_client: SmartsheetScheduleClient, 
         return session
 
 
+def disable_sniff_detector_without_thermistor(
+    smartsheet_client: SmartsheetScheduleClient, session: Session, rig: AindVrForagingRig
+) -> None:
+    """Removes the harp sniff detector from the rig unless the smartsheet says the animal has a thermistor.
+
+    The smartsheet stores ``has_thermistor`` as the string "true" or "false". A missing row,
+    column or value is treated as no thermistor.
+    """
+    row = smartsheet_client.get_row(session.subject)
+    value = getattr(row, "has_thermistor", None)
+    if str(value).strip().lower() != "true":
+        logger.info("Subject '%s' has no confirmed thermistor; disabling harp_sniff_detector.", session.subject)
+        rig.harp_sniff_detector = None
+
+
 def run_data_transfer(
     launcher: Launcher,
     session: Session,

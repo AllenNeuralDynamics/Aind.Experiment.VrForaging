@@ -85,7 +85,7 @@ def _run_data_transfer(launcher: Launcher, session: Session) -> None:
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
 
-    watchdog_settings = WatchdogSettings()
+    watchdog_settings = WatchdogSettings(schedule_time=None)
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
     watchdog_settings.job_type = "upload_only_v2"
     WatchdogDataTransferService(

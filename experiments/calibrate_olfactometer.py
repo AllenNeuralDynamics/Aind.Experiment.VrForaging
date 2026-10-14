@@ -85,7 +85,7 @@ def _run_data_transfer(launcher: Launcher, session: Session) -> None:
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
 
-    watchdog_settings = WatchdogSettings()
+    watchdog_settings = WatchdogSettings(schedule_time=None)
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
     watchdog_settings.job_type = "upload_only_v2"
     WatchdogDataTransferService(
@@ -124,6 +124,54 @@ async def calibrate_olfactometer(launcher: Launcher) -> None:
     # The workflow logs no wall-clock end time, so the mapper needs ours.
     session_end_time = utcnow()
     ui.notify("Olfactometer calibration completed successfully.", ui.MessageLevel.SUCCESS)
+
+    # Mappers
+    _run_mappers(launcher, session_end_time)
+    ui.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
+
+    # Watchdog
+    launcher.copy_logs()
+    _run_data_transfer(launcher, session)
+
+
+@experiment(name="recover-olfactometer-calibration", order=5)
+async def recover_olfactometer_calibration(launcher: Launcher) -> None:
+    """Re-run data mapping and transfer for an olfactometer calibration session
+    whose bonsai workflow already completed (e.g. after a launcher crash)."""
+    session_path = launcher.frontend.prompt_path(
+        ui.PathRequest(
+            label="Choose the calibration session directory to recover:",
+            kind="dir",
+            field="session_directory",
+        )
+    )
+    if session_path is None:
+        ui.notify("Session recovery cancelled.", ui.MessageLevel.WARNING)
+        return
+
+    logs_directory = session_path / "Behavior" / "Logs"
+    session = Session.model_validate_json((logs_directory / "session_input.json").read_text(encoding="utf-8"))
+    rig = OlfactometerCalibrationRig.model_validate_json(
+        (logs_directory / "rig_input.json").read_text(encoding="utf-8")
+    )
+    launcher.register_session(session, rig.data_directory)
+
+    # The workflow logs no wall-clock end time, so it has to be provided.
+    session_end_time: datetime.datetime | None = None
+    while session_end_time is None:
+        try:
+            session_end_time = datetime.datetime.fromisoformat(
+                launcher.frontend.prompt_text(
+                    ui.TextRequest(
+                        label=(
+                            "Enter the session end time in ISO format (YYYY-MM-DDTHH:MM:SSz), "
+                            "e.g: 2024-01-01T12:00:00Z:"
+                        )
+                    )
+                )
+            )
+        except ValueError:
+            ui.notify("Invalid date format. Please use ISO format (YYYY-MM-DDTHH:MM:SSz).", ui.MessageLevel.WARNING)
 
     # Mappers
     _run_mappers(launcher, session_end_time)

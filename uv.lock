@@ -276,6 +276,8 @@ dependencies = [
     { name = "aind-behavior-vr-foraging-data-mappers" },
     { name = "aind-clabe", extra = ["aind-services", "otel"] },
     { name = "aind-physiology-fip" },
+    { name = "aind-physiology-openephys" },
+    { name = "aind-physiology-openephys-data-mappers" },
     { name = "ruff" },
 ]
 
@@ -287,6 +289,8 @@ requires-dist = [
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
     { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.8" },
     { name = "aind-physiology-fip", editable = "Aind.Physiology.Fip" },
+    { name = "aind-physiology-openephys", editable = "Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys" },
+    { name = "aind-physiology-openephys-data-mappers", editable = "Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys_data_mappers" },
     { name = "ruff" },
 ]
 
@@ -323,6 +327,50 @@ docs = [
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extras = ["python"] },
     { name = "pymdown-extensions" },
+]
+
+[[package]]
+name = "aind-physiology-openephys"
+version = "0.1.0"
+source = { editable = "Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "codespell" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+]
+
+[[package]]
+name = "aind-physiology-openephys-data-mappers"
+version = "0.1.0"
+source = { editable = "Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys_data_mappers" }
+dependencies = [
+    { name = "aind-data-schema" },
+    { name = "aind-data-schema-models" },
+    { name = "aind-physiology-openephys" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aind-data-schema", specifier = ">=2.7.1" },
+    { name = "aind-data-schema-models" },
+    { name = "aind-physiology-openephys", editable = "Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "codespell" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
 ]
 
 [[package]]

@@ -181,7 +181,8 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool, wit
     run_vr_foraging_mappers(launcher, suggestion_path, curriculum_settings, utcnow())
     if with_fip:
         run_fip_mapper(launcher)
-    run_open_ephys_mapper(open_ephys.session_directory if open_ephys is not None else None)
+    if open_ephys is not None:
+        run_open_ephys_mapper(open_ephys.session_directory)
     ui.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
 
     # Data QC

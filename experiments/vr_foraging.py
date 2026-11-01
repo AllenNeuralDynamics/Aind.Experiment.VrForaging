@@ -11,6 +11,7 @@ from aind_behavior_services.utils import utcnow
 from aind_behavior_vr_foraging.data_contract.utils import calculate_consumed_water
 from aind_behavior_vr_foraging.rig import AindVrForagingRig
 from aind_behavior_vr_foraging.task_logic import AindVrForagingTaskLogic
+from aind_physiology_openephys.app import AindBehaviorServicesOpenEphysApp
 from clabe import aind_apps, resource_monitor, ui
 from clabe.apps import AindBehaviorServicesBonsaiApp, CurriculumSettings
 from clabe.launcher import Launcher, experiment
@@ -22,6 +23,12 @@ from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 
 from .curriculum_helpers import is_on_curriculum, run_curriculum_if_applicable
 from .fip import FIP_BONSAI_EXECUTABLE, FIP_WORKFLOW, resolve_fip_rig, run_fip_mapper
+from .ephys_helpers import (
+    OPEN_EPHYS_CONFIG_LIBRARY,
+    OPEN_EPHYS_RIG,
+    find_open_ephys_session_directory,
+    run_open_ephys_mapper,
+)
 from .launcher_helpers import (
     ByAnimalManipulatorModifier,
     add_scientific_contact_or_warn,
@@ -50,8 +57,8 @@ def _behavior_store(session: Session) -> Store:
     ).scoped(subject=session.subject, task_name=_TASK_NAME)
 
 
-async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> None:
-    """Shared implementation for the ``vr-foraging`` and ``vr-foraging-fip`` experiments."""
+async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool, with_ephys: bool = False) -> None:
+    """Shared implementation for the ``vr-foraging``, ``vr-foraging-fip`` and ``vr-foraging-ephys`` experiments."""
     # Start experiment setup
     smartsheet_client = SmartsheetScheduleClient()
     session = add_scientific_contact_or_warn(smartsheet_client, SessionBuilder(launcher).build())
@@ -70,6 +77,15 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     if with_fip:
         logger.info("Pick FIP rig...")
         fip_rig = resolve_fip_rig()
+    open_ephys = None
+    if with_ephys:
+        logger.info("Pick Open Ephys rig...")
+        open_ephys_rig = LocalFileStore(OPEN_EPHYS_CONFIG_LIBRARY).resolve(OPEN_EPHYS_RIG)
+        open_ephys = AindBehaviorServicesOpenEphysApp(
+            open_ephys_rig,
+            session,
+            executable=Path(r"./Aind.Physiology.OpenEphys/.open-ephys/open-ephys.exe"),
+        )
 
     if not confirm_session_info(launcher, session, trainer_state):
         ui.notify("Session information not confirmed. Aborting.", ui.MessageLevel.WARNING)
@@ -96,27 +112,40 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     )
     manipulator_modifier.inject(rig)
 
-    # Run the VrForaging workflow, and FIP concurrently if enabled
-    bonsai_app = AindBehaviorServicesBonsaiApp(
-        workflow=Path(r"./Aind.Behavior.VrForaging/src/main.bonsai"),
-        executable=Path(r"./Aind.Behavior.VrForaging/.bonsai/bonsai.exe"),
-        temp_directory=launcher.temp_dir,
-        rig=rig,
-        session=session,
-        task=task_logic,
-    )
-    if fip_rig is not None:
-        fip_app = AindBehaviorServicesBonsaiApp(
-            workflow=FIP_WORKFLOW,
-            executable=FIP_BONSAI_EXECUTABLE,
+    # Run the VrForaging workflow, and FIP concurrently if enabled. Open Ephys, if enabled, records on the computer
+    # its rig names for as long as the workflows run.
+    if open_ephys is not None:
+        await open_ephys.launch()
+    try:
+        if open_ephys is not None:
+            open_ephys.start()
+        bonsai_app = AindBehaviorServicesBonsaiApp(
+            workflow=Path(r"./Aind.Behavior.VrForaging/src/main.bonsai"),
+            executable=Path(r"./Aind.Behavior.VrForaging/.bonsai/bonsai.exe"),
             temp_directory=launcher.temp_dir,
-            rig=fip_rig,
+            rig=rig,
             session=session,
-            is_editor_mode=False,
+            task=task_logic,
         )
-        await asyncio.gather(bonsai_app.run_async(), fip_app.run_async())
-    else:
-        await bonsai_app.run_async()
+        if fip_rig is not None:
+            fip_app = AindBehaviorServicesBonsaiApp(
+                workflow=FIP_WORKFLOW,
+                executable=FIP_BONSAI_EXECUTABLE,
+                temp_directory=launcher.temp_dir,
+                rig=fip_rig,
+                session=session,
+                is_editor_mode=False,
+            )
+            await asyncio.gather(bonsai_app.run_async(), fip_app.run_async())
+        else:
+            await bonsai_app.run_async()
+    finally:
+        # Also when a workflow fails, so that Open Ephys does not keep recording
+        if open_ephys is not None:
+            try:
+                open_ephys.stop()
+            finally:
+                await open_ephys.close()
 
     # Update manipulator initial position for next session
     try:
@@ -151,6 +180,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     run_vr_foraging_mappers(launcher, suggestion_path, curriculum_settings, utcnow())
     if with_fip:
         run_fip_mapper(launcher)
+    run_open_ephys_mapper(open_ephys.session_directory if open_ephys is not None else None)
     ui.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
 
     # Data QC
@@ -159,7 +189,11 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     # Watchdog
     launcher.copy_logs()
     run_data_transfer(
-        launcher, session, smartsheet_client=smartsheet_client, min_session_duration=_MIN_SESSION_DURATION
+        launcher,
+        session,
+        smartsheet_client=smartsheet_client,
+        min_session_duration=_MIN_SESSION_DURATION,
+        extra_sources=[open_ephys.session_directory] if open_ephys is not None else (),
     )
 
 
@@ -173,6 +207,12 @@ async def vr_foraging_protocol(launcher: Launcher) -> None:
 async def vr_foraging_fip_protocol(launcher: Launcher) -> None:
     """Run VrForaging and FIP concurrently as a single combined session."""
     await _run_vr_foraging_experiment(launcher, with_fip=True)
+
+
+@experiment(name="vr-foraging-ephys", order=6)
+async def vr_foraging_ephys_protocol(launcher: Launcher) -> None:
+    """Run VrForaging and Open Ephys, here or on the computer its rig names, as a single combined session."""
+    await _run_vr_foraging_experiment(launcher, with_fip=False, with_ephys=True)
 
 
 @experiment(name="calibration", order=2)
@@ -231,6 +271,10 @@ async def recover_session(launcher: Launcher) -> None:
 
     launcher.register_session(session_model, rig_model.data_directory)
     store = _behavior_store(session_model)
+    # Open Ephys records to its own session directory, on its own computer
+    open_ephys_session_path = find_open_ephys_session_directory(session_model)
+    if open_ephys_session_path is not None:
+        ui.notify(f"Recovering the Open Ephys session in {open_ephys_session_path}", ui.MessageLevel.INFO)
 
     suggestion_path: Path | None = None
     curriculum_settings: CurriculumSettings | None = None
@@ -285,6 +329,7 @@ async def recover_session(launcher: Launcher) -> None:
 
         run_vr_foraging_mappers(launcher, suggestion_path, curriculum_settings, session_end_time)
         run_fip_mapper(launcher)
+        run_open_ephys_mapper(open_ephys_session_path)
 
         ui.notify("Data mapping complete.", ui.MessageLevel.SUCCESS)
     else:
@@ -299,4 +344,5 @@ async def recover_session(launcher: Launcher) -> None:
         session_model,
         smartsheet_client=SmartsheetScheduleClient(),
         min_session_duration=_MIN_SESSION_DURATION,
+        extra_sources=[open_ephys_session_path] if open_ephys_session_path is not None else (),
     )

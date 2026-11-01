@@ -11,6 +11,8 @@ Set-Location (Split-Path -Parent $scriptDirectory)
 Set-Location (Split-Path -Parent $scriptDirectory)
 & ./Aind.Behavior.Device.Olfactometer/.bonsai/setup.ps1
 Set-Location (Split-Path -Parent $scriptDirectory)
+& ./Aind.Physiology.OpenEphys/.open-ephys/setup.ps1 -NoLaunch
+Set-Location (Split-Path -Parent $scriptDirectory)
 Write-Output "Creating a Python  environment..."
 
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {

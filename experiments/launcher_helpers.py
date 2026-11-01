@@ -1,5 +1,6 @@
 import datetime
 import logging
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -149,8 +150,12 @@ def run_data_transfer(
     session: Session,
     *,
     smartsheet_client: SmartsheetScheduleClient | None = None,
+    extra_sources: Sequence[Path] = (),
 ) -> None:
-    """Transfer session data, using Smartsheet metadata when a client is provided."""
+    """Transfer session data, using Smartsheet metadata when a client is provided.
+
+    ``extra_sources`` are further directories of the same session, e.g. recorded on another computer.
+    """
     if not ui.prompt_confirm(ui.ConfirmRequest(label="Would you like to transfer data?", default=True)):
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
@@ -170,7 +175,7 @@ def run_data_transfer(
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
 
     transfer_service = WatchdogDataTransferService(
-        source=launcher.session_directory,
+        source=[launcher.session_directory, *extra_sources],
         settings=watchdog_settings,
         session=session,
     )
@@ -186,7 +191,7 @@ def run_data_transfer(
             settings=RobocopySettings(
                 delete_src=False,
                 destination=Path(watchdog_settings.destination) / launcher.session_directory.name,
-                exclude_dirs=["behavior-videos", "fib"],
+                exclude_dirs=["behavior-videos", "fib", "ecephys"],
             ),
         ).transfer()
     except Exception as e:  # noqa: BLE001 -- transfer failures are reported and retried by the watchdog

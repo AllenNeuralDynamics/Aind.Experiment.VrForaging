@@ -10,6 +10,7 @@ from experiments.fip import fip_protocol
 from experiments.vr_foraging import (
     calibration_protocol,
     recover_session,
+    vr_foraging_ephys_protocol,
     vr_foraging_fip_protocol,
     vr_foraging_protocol,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "fip_protocol",
     "recover_olfactometer_calibration",
     "recover_session",
+    "vr_foraging_ephys_protocol",
     "vr_foraging_fip_protocol",
     "vr_foraging_protocol",
 ]

@@ -29,10 +29,6 @@ confierge = { git = "https://github.com/AllenNeuralDynamics/ficus.git", subdirec
 aind-physiology-openephys = { path = "./Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys", editable = true }
 aind-physiology-openephys-data-mappers = { path = "./Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys_data_mappers", editable = true }
 
-[tool.uv]
-# confierge (required by aind-clabe>=0.15) needs pydantic>=2.13.4, but aind-data-schema caps it at <2.12.
-override-dependencies = ["pydantic>=2.13.4"]
-
 [tool.ruff]
 line-length = 120
 target-version = "py313"
@@ -46,3 +42,11 @@ extend-exclude = [
 
 [tool.ruff.lint]
 extend-select = ["I"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

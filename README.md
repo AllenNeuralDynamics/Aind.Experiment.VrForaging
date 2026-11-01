@@ -36,6 +36,8 @@ amount of glue code:
   experiments:
   - `vr-foraging` — run VrForaging on its own, without FIP.
   - `vr-foraging-fip` — run VrForaging and FIP concurrently as a single combined session.
+  - `vr-foraging-ephys` — run VrForaging and Open Ephys, here or on another computer, as a single combined
+    session (see [Open Ephys](#open-ephys)).
   - `fip` — run FIP acquisition on its own, without the behavior component.
   - `calibration` — run only the VrForaging rig for calibration; nothing is recorded.
   - `calibrate-olfactometer` — calibrate olfactometer hardware using its local rig configuration.
@@ -55,6 +57,23 @@ amount of glue code:
 2. Clone this repository
 3. Run `./scripts/deploy.cmd`
 4. Ensure `clabe.yml` is defined in your system. There is an example in `examples/clabe.yml` that can be used to get you going by copying it into `./local`.
+
+## Open Ephys
+
+`vr-foraging-ephys` records Open Ephys alongside VrForaging, using `AindBehaviorServicesOpenEphysApp` from
+[Aind.Physiology.OpenEphys](https://github.com/AllenNeuralDynamics/Aind.Physiology.OpenEphys). The Open Ephys rig is
+picked from the `AindPhysiologyOpenEphys` configuration library. If its `computer_name` is this computer, Open Ephys
+runs here; otherwise it runs on that computer, which needs:
+
+1. A checkout of this repository on the same commit, deployed with `./scripts/deploy.cmd` (this downloads the GUI).
+2. The clabe XML-RPC server running from that checkout (`uv run clabe xml-rpc-server --help`; register it as a
+   scheduled task so the launcher can start it), with the same token as the `xml_rpc_client` section here.
+3. Administrator rights for the launcher's account, which starts the server remotely and reaches the rig's
+   `data_directory` through the drive's administrative share (e.g. `\\EPHYS-PC\D$\data`).
+
+Open Ephys records to `<data_directory>/<session name>/ecephys` on its computer; afterwards the launcher writes
+`ecephys_acquisition.json` and `ecephys_instrument.json` next to it and transfers it with the behavior data. Their
+`instrument_id` is the Open Ephys rig's `rig_name`, distinct from the behavior rig's.
 
 ## Launching an experiment
 

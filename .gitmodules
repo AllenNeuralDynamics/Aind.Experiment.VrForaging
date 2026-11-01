@@ -7,3 +7,6 @@
 [submodule "Aind.Behavior.Device.Olfactometer"]
 	path = Aind.Behavior.Device.Olfactometer
 	url = https://github.com/AllenNeuralDynamics/Aind.Behavior.Device.Olfactometer
+[submodule "Aind.Physiology.OpenEphys"]
+	path = Aind.Physiology.OpenEphys
+	url = https://github.com/AllenNeuralDynamics/Aind.Physiology.OpenEphys

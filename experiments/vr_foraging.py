@@ -21,12 +21,12 @@ from clabe.stores import CompositeStore, Kind, LocalFileStore, Store
 from clabe.stores.dataverse import DataverseStore
 from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 
+from .curriculum_helpers import is_on_curriculum, run_curriculum_if_applicable
 from .launcher_helpers import (
     ByAnimalManipulatorModifier,
     add_scientific_contact_or_warn,
     confirm_session_info,
     disable_sniff_detector_without_thermistor,
-    run_curriculum_if_applicable,
     run_data_qc,
     run_data_transfer,
     run_fip_mapper,
@@ -42,6 +42,8 @@ _FIP_RIG = Kind.from_rig(aind_physiology_fip.rig.AindPhysioFipRig)
 _TRAINER_STATE = Kind.from_trainer_state()
 _TASK_NAME = AindVrForagingTaskLogic.model_fields["name"].default
 assert isinstance(_TASK_NAME, str), "AindVrForagingTaskLogic must define a default task name."
+# Shorter sessions are not submitted for upload, to keep sporadic sessions out of the data pipeline.
+_MIN_SESSION_DURATION = datetime.timedelta(minutes=5)
 
 
 def _behavior_store(session: Session) -> Store:
@@ -132,7 +134,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
         _,
         suggestion_path,
         curriculum_settings,
-    ) = await run_curriculum_if_applicable(store, trainer_state, input_trainer_state_path, launcher)
+    ) = await run_curriculum_if_applicable(store, trainer_state, input_trainer_state_path, launcher, session)
 
     # Waterlog
     try:
@@ -159,7 +161,9 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
 
     # Watchdog
     launcher.copy_logs()
-    run_data_transfer(launcher, session, smartsheet_client=smartsheet_client)
+    run_data_transfer(
+        launcher, session, smartsheet_client=smartsheet_client, min_session_duration=_MIN_SESSION_DURATION
+    )
 
 
 @experiment(name="vr-foraging", order=0)
@@ -240,11 +244,28 @@ async def recover_session(launcher: Launcher) -> None:
             default=True,
         )
     ):
+        upload_suggestion = is_on_curriculum(trainer_state) and ui.prompt_confirm(
+            ui.ConfirmRequest(
+                label=(
+                    "Would you like to upload the curriculum suggestion? "
+                    "This overwrites the subject's current trainer state."
+                ),
+                default=True,
+            )
+        )
         (
             _,
             suggestion_path,
             curriculum_settings,
-        ) = await run_curriculum_if_applicable(store, trainer_state, input_trainer_state_path, launcher)
+        ) = await run_curriculum_if_applicable(
+            store,
+            trainer_state,
+            input_trainer_state_path,
+            launcher,
+            session_model,
+            keep_existing_past_metrics=True,
+            upload_suggestion=upload_suggestion,
+        )
 
         session_end_time: datetime.datetime | None = None
         while session_end_time is None:
@@ -276,4 +297,9 @@ async def recover_session(launcher: Launcher) -> None:
         )
 
     run_data_qc(launcher)
-    run_data_transfer(launcher, session_model, smartsheet_client=SmartsheetScheduleClient())
+    run_data_transfer(
+        launcher,
+        session_model,
+        smartsheet_client=SmartsheetScheduleClient(),
+        min_session_duration=_MIN_SESSION_DURATION,
+    )

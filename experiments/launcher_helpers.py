@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 from pathlib import Path
 from typing import Any, cast
@@ -11,7 +12,7 @@ from aind_behavior_vr_foraging.rig import AindVrForagingRig
 from aind_behavior_vr_foraging_data_mappers import DataMapperCli
 from aind_physiology_fip.data_mappers import ProtoAcquisitionMapper
 from clabe import ui
-from clabe.apps import CurriculumApp, CurriculumSettings, CurriculumSuggestion
+from clabe.apps import CurriculumSettings
 from clabe.data_transfer.aind_watchdog import (
     WatchdogDataTransferService,
     WatchdogSettings,
@@ -26,37 +27,7 @@ from contraqctor.contract.json import SoftwareEvents
 
 logger = logging.getLogger(__name__)
 
-_TRAINER_STATE = Kind.from_trainer_state()
 _MANIPULATOR_POSITION = Kind(ManipulatorPosition, name="manipulator_init")
-
-
-def _dump_suggestion(suggestion: CurriculumSuggestion, session_directory: Path) -> Path:
-    path = session_directory / "Behavior" / "Logs" / "suggestion.json"
-    logger.info("Dumping curriculum suggestion to: %s", path)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(suggestion.model_dump_json(indent=2))
-    return path
-
-
-async def run_curriculum_if_applicable(
-    store: Store,
-    trainer_state: TrainerState | None,
-    input_trainer_state_path: Path,
-    launcher: Launcher,
-) -> tuple[CurriculumSuggestion | None, Path | None, CurriculumSettings | None]:
-    if (trainer_state is None) or (trainer_state.is_on_curriculum is False) or (trainer_state.stage is None):
-        return None, None, None
-    ui.notify("Running curriculum evaluation...", ui.MessageLevel.INFO)
-    settings = CurriculumSettings(
-        input_trainer_state=input_trainer_state_path.resolve(),
-        data_directory=launcher.session_directory,
-    )
-    curriculum_app = CurriculumApp(settings=settings)
-    await curriculum_app.run_async()
-    suggestion = curriculum_app.process_suggestion()
-    suggestion_path = _dump_suggestion(suggestion, launcher.session_directory)
-    store.write(_TRAINER_STATE, suggestion.trainer_state)
-    return suggestion, suggestion_path, settings
 
 
 def confirm_session_info(launcher: Launcher, session: Session, trainer_state: TrainerState) -> bool:
@@ -144,16 +115,74 @@ def disable_sniff_detector_without_thermistor(
         rig.harp_sniff_detector = None
 
 
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def get_session_duration(session_directory: Path, fallback_start_time: datetime.datetime) -> datetime.timedelta | None:
+    """Returns the duration of a VrForaging session, or None if it cannot be determined.
+
+    Mirrors how the VrForaging acquisition mapper bounds the session: from the Bonsai ``StartSessionTime``
+    and ``EndSessionTime`` events, falling back to `fallback_start_time` for a missing start and to the span
+    of the ``ActiveSite`` events for a missing end.
+    """
+    events = session_directory / "behavior" / "SoftwareEvents"
+    try:
+        start_events = _read_jsonl(events / "StartSessionTime.json")
+        end_events = _read_jsonl(events / "EndSessionTime.json")
+        if end_events:
+            start = datetime.datetime.fromisoformat(start_events[0]["data"]) if start_events else fallback_start_time
+            return datetime.datetime.fromisoformat(end_events[-1]["data"]) - start
+        timestamps = [event["timestamp"] for event in _read_jsonl(events / "ActiveSite.json")]
+        if timestamps:
+            return datetime.timedelta(seconds=max(timestamps) - min(timestamps))
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        logger.error("Could not determine the session duration: %s: %s", type(e).__name__, e)
+    return None
+
+
+def _session_meets_min_duration(launcher: Launcher, session: Session, min_duration: datetime.timedelta) -> bool:
+    duration = get_session_duration(launcher.session_directory, session.date)
+    if duration is None:
+        logger.warning("Session duration could not be determined.")
+        return ui.prompt_confirm(
+            ui.ConfirmRequest(
+                label="Could not determine the session duration. Submit the session for upload anyway?",
+                default=False,
+            )
+        )
+    if duration < min_duration:
+        logger.warning("Session lasted %s, less than the minimum of %s.", duration, min_duration)
+        ui.notify(
+            f"Session lasted {duration}, less than the minimum of {min_duration}. "
+            "It will be copied to the network share but not submitted for upload.",
+            ui.MessageLevel.WARNING,
+        )
+        return False
+    return True
+
+
 def run_data_transfer(
     launcher: Launcher,
     session: Session,
     *,
     smartsheet_client: SmartsheetScheduleClient | None = None,
+    min_session_duration: datetime.timedelta | None = None,
 ) -> None:
-    """Transfer session data, using Smartsheet metadata when a client is provided."""
+    """Transfer session data, using Smartsheet metadata when a client is provided.
+
+    With `min_session_duration`, sessions shorter than it (or of unknown duration, unless the operator
+    confirms) are still robocopied off the rig but no watchdog manifest is created, so they are not uploaded.
+    """
     if not ui.prompt_confirm(ui.ConfirmRequest(label="Would you like to transfer data?", default=True)):
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
+
+    submit_for_upload = min_session_duration is None or _session_meets_min_duration(
+        launcher, session, min_session_duration
+    )
 
     watchdog_settings = WatchdogSettings()
     if smartsheet_client is not None:
@@ -194,6 +223,11 @@ def run_data_transfer(
         ui.notify(f"Initial data transfer failed: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
+    if not submit_for_upload:
+        logger.warning("Session not submitted for upload; no watchdog manifest was created.")
+        ui.notify("Session not submitted for upload.", ui.MessageLevel.WARNING)
+        otel.event("session-upload-rejected")
+        return
     transfer_service.transfer()
 
 

@@ -9,7 +9,8 @@ dependencies = [
     "aind-behavior-vr-foraging-data-mappers",
     "aind-behavior-vr-foraging-curricula",
     "aind-behavior-device-olfactometer[data-mappers]",
-    "aind-physiology-fip",
+    "aind-physiology-fip[data]",
+    "aind-physiology-fip-data-mappers",
     "aind-clabe[aind-services, otel]>=0.13.8",
     "ruff",
     "aind-data-access-api>=1.10.0",
@@ -22,7 +23,8 @@ aind-behavior-vr-foraging = { path = "./Aind.Behavior.VrForaging/src/packages/ai
 aind-behavior-vr-foraging-data-mappers = { path = "./Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers", editable = true }
 aind-behavior-vr-foraging-curricula = { path = "./Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula", editable = true }
 aind-behavior-device-olfactometer = { path = "./Aind.Behavior.Device.Olfactometer", editable = true }
-aind-physiology-fip = { path = "./Aind.Physiology.Fip", editable = true }
+aind-physiology-fip = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip", editable = true }
+aind-physiology-fip-data-mappers = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers", editable = true }
 
 [tool.ruff]
 line-length = 120

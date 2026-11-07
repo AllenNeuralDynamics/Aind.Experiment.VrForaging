@@ -10,7 +10,6 @@ from aind_behavior_services.session import Session
 from aind_behavior_vr_foraging import data_contract
 from aind_behavior_vr_foraging.rig import AindVrForagingRig
 from aind_behavior_vr_foraging_data_mappers import DataMapperCli
-from aind_physiology_fip.data_mappers import ProtoAcquisitionMapper
 from clabe import ui
 from clabe.apps import CurriculumSettings
 from clabe.data_transfer.aind_watchdog import (
@@ -68,26 +67,9 @@ def run_data_qc(launcher: Launcher) -> None:
         ui.notify(f"Failed to run data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
 
+    from .fip import run_fip_data_qc  # local import: fip.py depends on this module
+
     run_fip_data_qc(launcher)
-
-
-def run_fip_data_qc(launcher: Launcher) -> None:
-    """Run FIP QC when the session contains FIP recordings."""
-    fib_dir = launcher.session_directory / "fib"
-    if not fib_dir.exists():
-        return
-    try:
-        from aind_physiology_fip.data_qc import DataQcCli
-
-        ui.notify("Running FIP data QC...", ui.MessageLevel.INFO)
-        qc_assets_dir = launcher.session_directory / "FIB" / "fip_qc_assets"
-        for epoch in sorted(fib_dir.glob("fip_*")):
-            DataQcCli(data_path=epoch, asset_path=qc_assets_dir).cli_cmd()
-        ui.notify(f"FIP QC assets saved to {qc_assets_dir}", ui.MessageLevel.SUCCESS)
-    except Exception as e:  # noqa: BLE001 -- QC failures should be reported without aborting the session
-        logger.error("Failed to run FIP data QC: %s", e)
-        ui.notify(f"Failed to run FIP data QC: {e}", ui.MessageLevel.ERROR)
-        otel.record_exception(e)
 
 
 def add_scientific_contact_or_warn(smartsheet_client: SmartsheetScheduleClient, session: Session) -> Session:
@@ -255,17 +237,6 @@ def run_vr_foraging_mappers(
         curriculum_repository_path=curriculum_settings.project_directory if curriculum_settings else None,
         session_end_time=session_end_time,
     ).cli_cmd()
-
-
-def run_fip_mapper(launcher: Launcher) -> None:
-    if not (launcher.session_directory / "fib").exists():
-        logger.info(
-            "No 'fib' folder found under %s; skipping FIP mapper.",
-            launcher.session_directory,
-        )
-        return
-    fip_extracted = ProtoAcquisitionMapper(launcher.session_directory).map()
-    (launcher.session_directory / "fip.json").write_text(fip_extracted.model_dump_json(indent=2), encoding="utf-8")
 
 
 class ByAnimalManipulatorModifier(ByAnimalModifier[AindVrForagingRig]):

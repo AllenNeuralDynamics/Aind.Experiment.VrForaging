@@ -5,7 +5,6 @@ import datetime
 import logging
 from pathlib import Path
 
-import aind_physiology_fip.rig
 from aind_behavior_curriculum import TrainerState
 from aind_behavior_services.session import Session
 from aind_behavior_services.utils import utcnow
@@ -22,6 +21,7 @@ from clabe.stores.dataverse import DataverseStore
 from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 
 from .curriculum_helpers import is_on_curriculum, run_curriculum_if_applicable
+from .fip import FIP_BONSAI_EXECUTABLE, FIP_WORKFLOW, resolve_fip_rig, run_fip_mapper
 from .launcher_helpers import (
     ByAnimalManipulatorModifier,
     add_scientific_contact_or_warn,
@@ -29,16 +29,13 @@ from .launcher_helpers import (
     disable_sniff_detector_without_thermistor,
     run_data_qc,
     run_data_transfer,
-    run_fip_mapper,
     run_vr_foraging_mappers,
 )
 
 logger = logging.getLogger(__name__)
 
 _VR_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindVrForaging")
-_FIP_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindPhysiologyFip")
 _VR_RIG = Kind.from_rig(AindVrForagingRig)
-_FIP_RIG = Kind.from_rig(aind_physiology_fip.rig.AindPhysioFipRig)
 _TRAINER_STATE = Kind.from_trainer_state()
 _TASK_NAME = AindVrForagingTaskLogic.model_fields["name"].default
 assert isinstance(_TASK_NAME, str), "AindVrForagingTaskLogic must define a default task name."
@@ -72,7 +69,7 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     fip_rig = None
     if with_fip:
         logger.info("Pick FIP rig...")
-        fip_rig = LocalFileStore(_FIP_CONFIG_LIBRARY).resolve(_FIP_RIG)
+        fip_rig = resolve_fip_rig()
 
     if not confirm_session_info(launcher, session, trainer_state):
         ui.notify("Session information not confirmed. Aborting.", ui.MessageLevel.WARNING)
@@ -110,8 +107,8 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     )
     if fip_rig is not None:
         fip_app = AindBehaviorServicesBonsaiApp(
-            workflow=Path(r"./Aind.Physiology.Fip/src/main.bonsai"),
-            executable=Path(r"./Aind.Physiology.Fip/.bonsai/bonsai.exe"),
+            workflow=FIP_WORKFLOW,
+            executable=FIP_BONSAI_EXECUTABLE,
             temp_directory=launcher.temp_dir,
             rig=fip_rig,
             session=session,

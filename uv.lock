@@ -291,7 +291,8 @@ dependencies = [
     { name = "aind-behavior-vr-foraging-data-mappers" },
     { name = "aind-clabe", extra = ["aind-services", "otel"] },
     { name = "aind-data-access-api" },
-    { name = "aind-physiology-fip" },
+    { name = "aind-physiology-fip", extra = ["data"] },
+    { name = "aind-physiology-fip-data-mappers" },
     { name = "requests" },
     { name = "ruff" },
 ]
@@ -309,7 +310,8 @@ requires-dist = [
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
     { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.8" },
     { name = "aind-data-access-api", specifier = ">=1.10.0" },
-    { name = "aind-physiology-fip", editable = "Aind.Physiology.Fip" },
+    { name = "aind-physiology-fip", extras = ["data"], editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" },
+    { name = "aind-physiology-fip-data-mappers", editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "ruff" },
 ]
@@ -319,10 +321,17 @@ dev = [{ name = "pytest", specifier = ">=9.2.0" }]
 
 [[package]]
 name = "aind-physiology-fip"
-version = "0.3.5"
-source = { editable = "Aind.Physiology.Fip" }
+version = "0.5.0rc1"
+source = { editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" }
 dependencies = [
     { name = "aind-behavior-services" },
+    { name = "pydantic-settings" },
+]
+
+[package.optional-dependencies]
+data = [
+    { name = "contraqctor" },
+    { name = "opencv-python" },
 ]
 
 [package.metadata]
@@ -330,25 +339,31 @@ requires-dist = [
     { name = "aind-behavior-services", specifier = ">=0.13.6" },
     { name = "contraqctor", marker = "extra == 'data'", specifier = "<0.6" },
     { name = "opencv-python", marker = "extra == 'data'" },
-    { name = "pydantic-settings", marker = "extra == 'data'" },
+    { name = "pydantic-settings" },
 ]
 provides-extras = ["data"]
 
-[package.metadata.requires-dev]
-dev = [
-    { name = "aind-physiology-fip", extras = ["data"] },
-    { name = "codespell" },
-    { name = "ruff" },
+[[package]]
+name = "aind-physiology-fip-data-mappers"
+version = "0.1.0"
+source = { editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers" }
+dependencies = [
+    { name = "aind-clabe" },
+    { name = "aind-data-schema" },
+    { name = "aind-physiology-fip", extra = ["data"] },
+    { name = "gitpython" },
+    { name = "pandas" },
+    { name = "pydantic-settings" },
 ]
-docs = [
-    { name = "aind-physiology-fip", extras = ["data"] },
-    { name = "griffe-pydantic" },
-    { name = "griffe-typingdoc", specifier = ">=0.3.1" },
-    { name = "mkdocs" },
-    { name = "mkdocs-autorefs", specifier = ">=1.4.4" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings", extras = ["python"] },
-    { name = "pymdown-extensions" },
+
+[package.metadata]
+requires-dist = [
+    { name = "aind-clabe", specifier = ">=0.13" },
+    { name = "aind-data-schema", specifier = ">=2.9" },
+    { name = "aind-physiology-fip", extras = ["data"], editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" },
+    { name = "gitpython" },
+    { name = "pandas" },
+    { name = "pydantic-settings" },
 ]
 
 [[package]]

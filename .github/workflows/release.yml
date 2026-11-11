@@ -7,6 +7,10 @@ on:
         description: "Optional release notes"
         required: false
         default: ""
+      suffix:
+        description: "Optional suffix appended to the release name"
+        required: false
+        default: ""
 
 jobs:
   release:
@@ -34,13 +38,20 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pass inputs via env to avoid shell injection
+          NOTES: ${{ github.event.inputs.notes }}
+          SUFFIX: ${{ github.event.inputs.suffix }}
         run: |
-          NOTES="${{ github.event.inputs.notes }}"
           if [ -z "$NOTES" ]; then
             NOTES="Release ${{ steps.tag.outputs.tag }}"
           fi
 
+          TITLE="${{ steps.tag.outputs.tag }}"
+          if [ -n "$SUFFIX" ]; then
+            TITLE="${TITLE} ${SUFFIX}"
+          fi
+
           gh release create "${{ steps.tag.outputs.tag }}" \
-            --title "${{ steps.tag.outputs.tag }}" \
+            --title "$TITLE" \
             --notes "$NOTES" \
             --latest

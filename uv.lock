@@ -321,7 +321,7 @@ dev = [{ name = "pytest", specifier = ">=9.2.0" }]
 
 [[package]]
 name = "aind-physiology-fip"
-version = "0.5.0rc1"
+version = "0.5.0rc4"
 source = { editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" }
 dependencies = [
     { name = "aind-behavior-services" },

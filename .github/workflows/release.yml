@@ -41,10 +41,13 @@ jobs:
           # Pass inputs via env to avoid shell injection
           NOTES: ${{ github.event.inputs.notes }}
           SUFFIX: ${{ github.event.inputs.suffix }}
+          BRANCH: ${{ github.ref_name }}
         run: |
           if [ -z "$NOTES" ]; then
             NOTES="Release ${{ steps.tag.outputs.tag }}"
           fi
+
+          NOTES=$(printf '%s\n\nCreated from %s' "$NOTES" "$BRANCH")
 
           TITLE="${{ steps.tag.outputs.tag }}"
           if [ -n "$SUFFIX" ]; then
@@ -54,4 +57,5 @@ jobs:
           gh release create "${{ steps.tag.outputs.tag }}" \
             --title "$TITLE" \
             --notes "$NOTES" \
+            --target "${{ github.sha }}" \
             --latest

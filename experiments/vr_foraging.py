@@ -22,13 +22,13 @@ from clabe.stores.dataverse import DataverseStore
 from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 
 from .curriculum_helpers import is_on_curriculum, run_curriculum_if_applicable
-from .fip import FIP_BONSAI_EXECUTABLE, FIP_WORKFLOW, resolve_fip_rig, run_fip_mapper
 from .ephys_helpers import (
     OPEN_EPHYS_CONFIG_LIBRARY,
     OPEN_EPHYS_RIG,
     find_open_ephys_session_directory,
     run_open_ephys_mapper,
 )
+from .fip import FIP_BONSAI_EXECUTABLE, FIP_WORKFLOW, resolve_fip_rig, run_fip_mapper
 from .launcher_helpers import (
     ByAnimalManipulatorModifier,
     add_scientific_contact_or_warn,

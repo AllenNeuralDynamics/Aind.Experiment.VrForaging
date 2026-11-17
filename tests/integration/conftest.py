@@ -17,6 +17,7 @@ from pydantic import BaseModel, TypeAdapter
 REPOSITORY = Path(__file__).parents[2]
 VR_FORAGING = REPOSITORY / "Aind.Behavior.VrForaging"
 OPEN_EPHYS = REPOSITORY / "Aind.Physiology.OpenEphys"
+FIP = REPOSITORY / "Aind.Physiology.Fip"
 # Recorded by the Open Ephys example dataset; the behavior session is mocked to run over the same interval.
 SESSION_START_TIME = datetime.fromisoformat("2026-10-23T14:43:15.004-07:00")
 SESSION_END_TIME = datetime.fromisoformat("2026-10-23T14:44:09.762-07:00")
@@ -32,6 +33,31 @@ def _load_example(name: str) -> ModuleType:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _load_fip_session_builder() -> ModuleType:
+    """Load ``Aind.Physiology.Fip/tests/qc_fixtures.py``, which this repository's ``tests`` package shadows."""
+    # qc_fixtures.py is not part of the installed aind_physiology_fip package (it lives in the submodule's own
+    # tests folder), so it cannot be imported; load it by path. Temporary: replace once the FIP package ships
+    # a session builder, or build the epoch in this repository.
+    spec = importlib.util.spec_from_file_location("fip_qc_fixtures", FIP / "tests" / "qc_fixtures.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _write_fip_epoch(epoch_dir: Path, session: Session) -> None:
+    """Write a synthetic FIP epoch of ``session``, spanning the same interval as the behavior recording."""
+    _load_fip_session_builder().make_session(epoch_dir)
+    _write_model(epoch_dir / "Logs" / "session_input.json", session)
+    time_event = TypeAdapter(SoftwareEvent[datetime])
+    for name, time in (("StartSessionTime", SESSION_START_TIME), ("EndSessionTime", SESSION_END_TIME)):
+        _write_events(
+            epoch_dir / "SoftwareEvents" / f"{name}.json",
+            time_event,
+            [SoftwareEvent[datetime](name=name, timestamp=1000.0, timestamp_source="harp", data=time)],
+        )
 
 
 def _write_model(path: Path, model: BaseModel) -> None:
@@ -89,7 +115,7 @@ def session() -> Session:
 
 @pytest.fixture
 def session_directory(tmp_path: Path, session: Session) -> Path:
-    """A session directory holding unmapped ``behavior`` and ``ecephys`` recordings of ``session``."""
+    """A session directory holding unmapped ``behavior``, ``ecephys`` and ``fib`` recordings of ``session``."""
     session_directory = tmp_path / "session"
 
     behavior_dir = session_directory / "behavior"
@@ -111,4 +137,6 @@ def session_directory(tmp_path: Path, session: Session) -> Path:
             signal_chain=Path("src/example.xml"),
         ),
     )
+
+    _write_fip_epoch(session_directory / "fib" / "fip_2026-10-23T144315", session)
     return session_directory

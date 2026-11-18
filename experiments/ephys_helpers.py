@@ -14,7 +14,9 @@ from clabe.xml_rpc import to_unc
 logger = logging.getLogger(__name__)
 
 OPEN_EPHYS_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindPhysiologyOpenEphys")
-OPEN_EPHYS_RIG = Kind.from_rig(AindPhysioOpenEphysRig)
+# No validators: the default one overwrites ``rig_name`` and ``computer_name`` with this computer's, but an Open Ephys
+# rig may name another computer (the one running Open Ephys) and has its own ``rig_name`` (its ``instrument_id``).
+OPEN_EPHYS_RIG = Kind.from_rig(AindPhysioOpenEphysRig, validators=None)
 
 
 def find_open_ephys_session_directory(session: Session) -> Path | None:

@@ -1,10 +1,11 @@
-"""FIP acquisition experiment and its helpers."""
+"""FIP experiments (acquisition and photobleaching) and their helpers."""
 
+import functools
 import logging
 from pathlib import Path
 
 import aind_physiology_fip.rig
-from aind_physiology_fip.data_mappers import ProtoAcquisitionMapper
+from aind_physiology_fip_data_mappers import DataMapperCli as FipDataMapperCli
 from clabe import resource_monitor, ui
 from clabe.apps import AindBehaviorServicesBonsaiApp
 from clabe.launcher import Launcher, experiment
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 _FIP_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindPhysiologyFip")
 _FIP_RIG = Kind.from_rig(aind_physiology_fip.rig.AindPhysioFipRig)
 FIP_WORKFLOW = Path(r"./Aind.Physiology.Fip/src/main.bonsai")
+_PHOTOBLEACHING_WORKFLOW = Path(r"./Aind.Physiology.Fip/src/photobleaching.bonsai")
 FIP_BONSAI_EXECUTABLE = Path(r"./Aind.Physiology.Fip/.bonsai/bonsai.exe")
 
 
@@ -28,11 +30,17 @@ def resolve_fip_rig() -> aind_physiology_fip.rig.AindPhysioFipRig:
 
 
 def run_fip_mapper(launcher: Launcher) -> None:
+    """Run the FIP instrument and acquisition mappers (``instrument_fib.json`` / ``acquisition_fib.json``)."""
     if not (launcher.session_directory / "fib").exists():
         logger.info("No 'fib' folder found under %s; skipping FIP mapper.", launcher.session_directory)
         return
-    fip_extracted = ProtoAcquisitionMapper(launcher.session_directory).map()
-    (launcher.session_directory / "fip.json").write_text(fip_extracted.model_dump_json(indent=2), encoding="utf-8")
+    assert launcher.repository.working_tree_dir is not None
+    fip_repository_path = Path(launcher.repository.working_tree_dir) / "Aind.Physiology.Fip"
+    ui.notify("Running FIP data mappers...", ui.MessageLevel.INFO)
+    FipDataMapperCli(
+        data_path=launcher.session_directory,
+        repository_path=fip_repository_path,
+    ).cli_cmd()
 
 
 def run_fip_data_qc(launcher: Launcher) -> None:
@@ -79,3 +87,23 @@ async def fip_protocol(launcher: Launcher) -> None:
     launcher.copy_logs()
     run_data_transfer(launcher, session)
     ui.notify("FIP experiment completed successfully.", ui.MessageLevel.SUCCESS)
+
+
+@experiment(name="fip-photobleaching", order=6)
+async def fip_photobleaching_protocol(launcher: Launcher) -> None:
+    """Run the FIP photobleaching protocol.
+
+    The workflow only takes the rig: no session, data, mappers, QC or data transfer.
+    """
+    await AindBehaviorServicesBonsaiApp(
+        workflow=_PHOTOBLEACHING_WORKFLOW,
+        executable=FIP_BONSAI_EXECUTABLE,
+        temp_directory=launcher.temp_dir,
+        rig=resolve_fip_rig(),
+        is_editor_mode=False,
+    ).run_async()
+    ui.notify("FIP photobleaching completed.", ui.MessageLevel.SUCCESS)
+    # Skip clabe's "Press Enter to exit..." prompt, but only on success: a failure raises before this
+    # point, so errors stay on screen. Relies on the private Launcher._exit; replace once clabe has a
+    # public auto-exit option.
+    launcher._exit = functools.partial(type(launcher)._exit, launcher, _force=True)

@@ -1,0 +1,124 @@
+"""Fixtures that build a session directory as a ``vr-foraging-fip`` session leaves it, ready to be mapped."""
+
+import importlib.util
+from collections.abc import Sequence
+from datetime import datetime
+from pathlib import Path
+from types import ModuleType
+
+import pytest
+from aind_behavior_services.data_types import SoftwareEvent
+from aind_behavior_services.session import Session
+from pydantic import BaseModel, TypeAdapter
+
+REPOSITORY = Path(__file__).parents[2]
+VR_FORAGING = REPOSITORY / "Aind.Behavior.VrForaging"
+FIP = REPOSITORY / "Aind.Physiology.Fip"
+# The mocked behavior and FIP recordings span the same interval.
+SESSION_START_TIME = datetime.fromisoformat("2026-10-23T14:43:15.004-07:00")
+SESSION_END_TIME = datetime.fromisoformat("2026-10-23T14:44:09.762-07:00")
+REWARD_VOLUMES_UL = (5.0, 5.0)
+
+
+def _load_example(name: str) -> ModuleType:
+    """Load ``Aind.Behavior.VrForaging/examples/<name>.py``, which this repository's ``examples`` package shadows."""
+    spec = importlib.util.spec_from_file_location(
+        f"vr_foraging_examples.{name}", VR_FORAGING / "examples" / f"{name}.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_fip_session_builder() -> ModuleType:
+    """Load ``Aind.Physiology.Fip/tests/qc_fixtures.py``, which this repository's ``tests`` package shadows."""
+    # qc_fixtures.py is not part of the installed aind_physiology_fip package (it lives in the submodule's own
+    # tests folder), so it cannot be imported; load it by path. Temporary: replace once the FIP package ships
+    # a session builder, or build the epoch in this repository.
+    spec = importlib.util.spec_from_file_location("fip_qc_fixtures", FIP / "tests" / "qc_fixtures.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _write_fip_epoch(epoch_dir: Path, session: Session) -> None:
+    """Write a synthetic FIP epoch of ``session``, spanning the same interval as the behavior recording."""
+    _load_fip_session_builder().make_session(epoch_dir)
+    _write_model(epoch_dir / "Logs" / "session_input.json", session)
+    time_event = TypeAdapter(SoftwareEvent[datetime])
+    for name, time in (("StartSessionTime", SESSION_START_TIME), ("EndSessionTime", SESSION_END_TIME)):
+        _write_events(
+            epoch_dir / "SoftwareEvents" / f"{name}.json",
+            time_event,
+            [SoftwareEvent[datetime](name=name, timestamp=1000.0, timestamp_source="harp", data=time)],
+        )
+
+
+def _write_model(path: Path, model: BaseModel) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(model.model_dump_json(indent=2), encoding="utf-8")
+
+
+def _write_events(path: Path, adapter: TypeAdapter, events: Sequence) -> None:
+    """Serialize ``events`` as one-per-line JSON into ``path``."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("".join(adapter.dump_json(event).decode("utf-8") + "\n" for event in events), encoding="utf-8")
+
+
+def _write_software_events(behavior_dir: Path) -> None:
+    time_event = TypeAdapter(SoftwareEvent[datetime])
+    reward_event = TypeAdapter(SoftwareEvent[float])
+    events_dir = behavior_dir / "SoftwareEvents"
+    _write_events(
+        events_dir / "StartSessionTime.json",
+        time_event,
+        [
+            SoftwareEvent[datetime](
+                name="StartSessionTime", timestamp=0.0, timestamp_source="harp", data=SESSION_START_TIME
+            )
+        ],
+    )
+    _write_events(
+        events_dir / "EndSessionTime.json",
+        time_event,
+        [
+            SoftwareEvent[datetime](
+                name="EndSessionTime",
+                timestamp=(SESSION_END_TIME - SESSION_START_TIME).total_seconds(),
+                timestamp_source="harp",
+                data=SESSION_END_TIME,
+            )
+        ],
+    )
+    _write_events(
+        events_dir / "GiveReward.json",
+        reward_event,
+        [
+            SoftwareEvent[float](name="GiveReward", timestamp=float(i), timestamp_source="harp", data=volume)
+            for i, volume in enumerate(REWARD_VOLUMES_UL)
+        ],
+    )
+
+
+@pytest.fixture
+def session() -> Session:
+    """The session shared by the behavior and FIP recordings."""
+    example = _load_example("session").session
+    return example.model_copy(update={"date": SESSION_START_TIME, "session_name": "integration-session"})
+
+
+@pytest.fixture
+def session_directory(tmp_path: Path, session: Session) -> Path:
+    """A session directory holding unmapped ``behavior`` and ``fib`` recordings of ``session``."""
+    session_directory = tmp_path / "session"
+
+    behavior_dir = session_directory / "behavior"
+    _write_model(behavior_dir / "Logs" / "session_input.json", session)
+    _write_model(behavior_dir / "Logs" / "rig_input.json", _load_example("rig").rig)
+    _write_model(behavior_dir / "Logs" / "tasklogic_input.json", _load_example("task_patch_foraging").task_logic)
+    _write_software_events(behavior_dir)
+
+    _write_fip_epoch(session_directory / "fib" / "fip_2026-10-23T144315", session)
+    return session_directory

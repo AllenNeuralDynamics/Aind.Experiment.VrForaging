@@ -12,6 +12,12 @@ curriculum:
   script: ["curriculum", "run"]
   project_directory: "Aind.Behavior.VrForaging"
 
+# Only needed when Open Ephys runs on another computer (see the README)
+xml_rpc_client:
+  token: "replace-with-the-server-token"
+
+
+
 dataverse:
   tenant_id: "32669cd6-737f-4b39-8bdd-d6951120d3fc"
   client_id: "df37356e-3316-484a-b732-319b6b4ad464"

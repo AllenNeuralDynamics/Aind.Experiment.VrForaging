@@ -11,10 +11,14 @@ dependencies = [
     "aind-behavior-device-olfactometer[data-mappers]",
     "aind-physiology-fip[data]",
     "aind-physiology-fip-data-mappers",
-    "aind-clabe[aind-services, otel]>=0.13.8",
+    "aind-physiology-openephys",
+    "aind-physiology-openephys-data-mappers",
+    "aind-clabe[aind-services, otel]>=0.15.2",
+    "aind-watchdog-service>=0.1.10.dev0",
     "ruff",
     "aind-data-access-api>=1.10.0",
     "requests>=2.34.2",
+    "confierge",
 ]
 
 
@@ -25,6 +29,14 @@ aind-behavior-vr-foraging-curricula = { path = "./Aind.Behavior.VrForaging/src/p
 aind-behavior-device-olfactometer = { path = "./Aind.Behavior.Device.Olfactometer", editable = true }
 aind-physiology-fip = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip", editable = true }
 aind-physiology-fip-data-mappers = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers", editable = true }
+# Required by aind-clabe[aind-services] but not published to PyPI; sources only apply to direct dependencies
+confierge = { git = "https://github.com/AllenNeuralDynamics/ficus.git", subdirectory = "packages/confierge", tag = "confierge-v0.1.2" }
+aind-physiology-openephys = { path = "./Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys", editable = true }
+aind-physiology-openephys-data-mappers = { path = "./Aind.Physiology.OpenEphys/src/packages/aind_physiology_openephys_data_mappers", editable = true }
+
+[tool.uv]
+# confierge (required by aind-clabe>=0.15) needs pydantic>=2.13.4, but aind-data-schema caps it at <2.12.
+override-dependencies = ["pydantic>=2.13.4"]
 
 [tool.ruff]
 line-length = 120
@@ -34,6 +46,7 @@ extend-exclude = [
     "Aind.Behavior.Device.Olfactometer",
     "Aind.Behavior.VrForaging",
     "Aind.Physiology.Fip",
+    "Aind.Physiology.OpenEphys",
 ]
 
 [tool.ruff.lint]

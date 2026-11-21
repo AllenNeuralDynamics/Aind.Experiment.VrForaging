@@ -1,16 +1,35 @@
 # In order to get picked up, move this file to the root of the project or ./local
 
-watchdog:
-  project_name: "Cognitive flexibility in patch foraging"
-  destination: '\\allen\\aind\\scratch\\vr-foraging\\data'
-  delete_modalities_source_after_success: true
-  job_type: "vr_foraging_v2"
-  transfer_endpoint: "http://aind-data-transfer-service-dev/api/v2/submit_jobs"
-  s3_bucket: "default"
-
 curriculum:
   script: ["curriculum", "run"]
   project_directory: "Aind.Behavior.VrForaging"
+
+otel:
+  enabled: true
+  endpoint: "http://localhost:4317"
+  service_name: "aind-behavior-vr-foraging"
+  software_name: "aind-behavior-vr-foraging"
+
+watchdog:
+  project_name: "Cognitive flexibility in patch foraging"
+  destination: '\\allen\\aind\\stage\\vr-foraging\\data'
+  transfer_endpoint: "http://aind-data-transfer-service/api/v2/submit_jobs"
+  s3_bucket: "default"
+  # One watchdog manifest per group, all landing in the same asset.
+  upload_groups:
+    # Behavior and the session's metadata, submitted right away. Creates the metadata record.
+    - name: 1_of_2
+      job_type: "vr_foraging_v2"
+      creates_record: true
+      modalities: [behavior]
+      schedule_time: null
+      delete_modalities_source_after_success: true
+    # Every other modality (videos, photometry, ...), appended to the record later.
+    - name: 2_of_2
+      job_type: "vr_foraging_v2"
+      modalities: "*"
+      schedule_time: "19:00"
+      delete_modalities_source_after_success: true
 
 dataverse:
   tenant_id: "32669cd6-737f-4b39-8bdd-d6951120d3fc"

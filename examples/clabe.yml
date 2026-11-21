@@ -24,7 +24,7 @@ watchdog:
       modalities: [behavior]
       schedule_time: null
       delete_modalities_source_after_success: true
-    # Every other modality (videos, photometry, ...), appended to the record later.
+    # Every other UNCLAIMED modality (videos, photometry, ...), appended to the record later.
     - name: 2_of_2
       job_type: "vr_foraging_v2"
       modalities: "*"

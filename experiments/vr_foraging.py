@@ -23,6 +23,7 @@ from clabe.utils.aind_smartsheet import SmartsheetScheduleClient
 from .curriculum_helpers import is_on_curriculum, run_curriculum_if_applicable
 from .fip import FIP_BONSAI_EXECUTABLE, FIP_WORKFLOW, resolve_fip_rig, run_fip_mapper
 from .launcher_helpers import (
+    EXIT_PROMPT_TIMEOUT_S,
     ByAnimalManipulatorModifier,
     add_scientific_contact_or_warn,
     confirm_session_info,
@@ -163,19 +164,19 @@ async def _run_vr_foraging_experiment(launcher: Launcher, *, with_fip: bool) -> 
     )
 
 
-@experiment(name="vr-foraging", order=0)
+@experiment(name="vr-foraging", order=0, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
 async def vr_foraging_protocol(launcher: Launcher) -> None:
     """Run VrForaging on its own, without FIP."""
     await _run_vr_foraging_experiment(launcher, with_fip=False)
 
 
-@experiment(name="vr-foraging-fip", order=1)
+@experiment(name="vr-foraging-fip", order=1, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
 async def vr_foraging_fip_protocol(launcher: Launcher) -> None:
     """Run VrForaging and FIP concurrently as a single combined session."""
     await _run_vr_foraging_experiment(launcher, with_fip=True)
 
 
-@experiment(name="calibration", order=2)
+@experiment(name="calibration", order=2, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
 async def calibration_protocol(launcher: Launcher) -> None:
     """Run only the VrForaging rig, for calibration purposes. No data is recorded."""
     session = Session(
@@ -201,7 +202,7 @@ async def calibration_protocol(launcher: Launcher) -> None:
     ui.notify("Calibration protocol completed successfully.", ui.MessageLevel.SUCCESS)
 
 
-@experiment(name="recover-session", order=4)
+@experiment(name="recover-session", order=4, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
 async def recover_session(launcher: Launcher) -> None:
     """Re-run curriculum evaluation, data mapping, QC and transfer for a session
     whose bonsai workflow(s) already completed (e.g. after a launcher crash)."""

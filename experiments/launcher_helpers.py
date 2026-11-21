@@ -26,6 +26,8 @@ from contraqctor.contract.json import SoftwareEvents
 
 logger = logging.getLogger(__name__)
 
+EXIT_PROMPT_TIMEOUT_S = 60
+
 _MANIPULATOR_POSITION = Kind(ManipulatorPosition, name="manipulator_init")
 
 

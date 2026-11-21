@@ -1,6 +1,5 @@
 """FIP experiments (acquisition and photobleaching) and their helpers."""
 
-import functools
 import logging
 from pathlib import Path
 
@@ -13,7 +12,7 @@ from clabe.logging import otel
 from clabe.session import SessionBuilder
 from clabe.stores import Kind, LocalFileStore
 
-from .launcher_helpers import run_data_transfer
+from .launcher_helpers import EXIT_PROMPT_TIMEOUT_S, run_data_transfer
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,7 @@ def run_fip_data_qc(launcher: Launcher) -> None:
         otel.record_exception(e)
 
 
-@experiment(name="fip", order=5)
+@experiment(name="fip", order=5, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
 async def fip_protocol(launcher: Launcher) -> None:
     """Run FIP acquisition without the VrForaging behavior component."""
     session = SessionBuilder(launcher).build()
@@ -89,7 +88,7 @@ async def fip_protocol(launcher: Launcher) -> None:
     ui.notify("FIP experiment completed successfully.", ui.MessageLevel.SUCCESS)
 
 
-@experiment(name="fip-photobleaching", order=6)
+@experiment(name="fip-photobleaching", order=6, exit_prompt_timeout=0)
 async def fip_photobleaching_protocol(launcher: Launcher) -> None:
     """Run the FIP photobleaching protocol.
 
@@ -103,7 +102,3 @@ async def fip_photobleaching_protocol(launcher: Launcher) -> None:
         is_editor_mode=False,
     ).run_async()
     ui.notify("FIP photobleaching completed.", ui.MessageLevel.SUCCESS)
-    # Skip clabe's "Press Enter to exit..." prompt, but only on success: a failure raises before this
-    # point, so errors stay on screen. Relies on the private Launcher._exit; replace once clabe has a
-    # public auto-exit option.
-    launcher._exit = functools.partial(type(launcher)._exit, launcher, _force=True)

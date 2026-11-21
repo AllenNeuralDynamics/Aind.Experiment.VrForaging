@@ -22,6 +22,8 @@ from clabe.session import SessionBuilder
 from clabe.stores import Kind, LocalFileStore
 from pydantic import create_model
 
+from .launcher_helpers import EXIT_PROMPT_TIMEOUT_S
+
 #: AIND marks calibration data assets with this subject id.
 #: https://docs.allenneuraldynamics.org/en/latest/acquire_upload/calibration.html
 _CALIBRATION_SUBJECT_ID = "calibration"
@@ -95,7 +97,7 @@ def _run_data_transfer(launcher: Launcher, session: Session) -> None:
     ).transfer()
 
 
-@experiment(name="calibrate-olfactometer", order=3)
+@experiment(name="calibrate-olfactometer", order=3, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
 async def calibrate_olfactometer(launcher: Launcher) -> None:
     """Calibrate the rig's olfactometer hardware."""
     session = _calibration_session(launcher)
@@ -134,7 +136,7 @@ async def calibrate_olfactometer(launcher: Launcher) -> None:
     _run_data_transfer(launcher, session)
 
 
-@experiment(name="recover-olfactometer-calibration", order=5)
+@experiment(name="recover-olfactometer-calibration", order=5, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
 async def recover_olfactometer_calibration(launcher: Launcher) -> None:
     """Re-run data mapping and transfer for an olfactometer calibration session
     whose bonsai workflow already completed (e.g. after a launcher crash)."""

@@ -182,7 +182,7 @@ dev = [
 
 [[package]]
 name = "aind-clabe"
-version = "0.13.8"
+version = "0.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -197,9 +197,9 @@ dependencies = [
     { name = "textual-fspicker" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/39/1269e0db941be899f4339566d41867eaac62da107d78da46bdb37708371d/aind_clabe-0.13.8.tar.gz", hash = "sha256:b5559bebcc124662fab2d839b6e7ec3c2d8f03029663973d3fb0d859a9f65eb1", size = 137280, upload-time = "2026-10-04T01:30:15.036Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/65/032d8f271597c2e44d6cb440ab89479d7bad190c5da05a4d31d6e92292c1/aind_clabe-0.17.0.tar.gz", hash = "sha256:8f1f0ebec4805d7a1360add21e3f5488cf671c9e84b7891de6ea547cde7adc65", size = 153461, upload-time = "2026-11-21T06:21:24.21Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/73/3a3c5660cdef2ce9e32c5a397fa3051ff29e2ece26b3434a666ca261beaf/aind_clabe-0.13.8-py3-none-any.whl", hash = "sha256:85fa79439e3ca8c839daa83b01d085cde40f9d4a55dc38c86f84f15c7590a3c7", size = 172030, upload-time = "2026-10-04T01:30:13.834Z" },
+    { url = "https://files.pythonhosted.org/packages/92/4b/0d92aca2c397bba72c8821d80b996bce8045963b905ae35a11ebb4df4d62/aind_clabe-0.17.0-py3-none-any.whl", hash = "sha256:0048fa36ec3e4018de03acc339d877b262efd748fd518042de595075f4700776", size = 185004, upload-time = "2026-11-21T06:21:22.863Z" },
 ]
 
 [package.optional-dependencies]
@@ -207,6 +207,7 @@ aind-services = [
     { name = "aind-data-schema" },
     { name = "aind-data-transfer-service" },
     { name = "aind-watchdog-service" },
+    { name = "confierge" },
     { name = "msal", marker = "sys_platform == 'win32'" },
     { name = "pykeepass" },
     { name = "pyyaml" },
@@ -265,7 +266,7 @@ wheels = [
 
 [[package]]
 name = "aind-data-transfer-service"
-version = "2.2.3"
+version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-data-schema-models" },
@@ -275,9 +276,9 @@ dependencies = [
     { name = "python-json-logger" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b8/9f/08edacafb4bd5ff47fe9d70532b01e359f19728a9c3262f2f24b0fb304b5/aind_data_transfer_service-2.2.3.tar.gz", hash = "sha256:a6364f4433128bb00dafaf31bbdaac90effa0d5b697ec9f95021864f087f6a11", size = 38568, upload-time = "2026-11-03T00:25:38.614Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8f/b9/b1ad80088592d6fd7b0d1bf1561adbf98da73e53f9190847206de3535972/aind_data_transfer_service-2.3.0.tar.gz", hash = "sha256:c1bd9e0f5c46c5d70d405c2750b7d8c98a3ff33e6a321332195f174cad300a5a", size = 38693, upload-time = "2026-11-18T22:40:42.199Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/16/c8/562e5a4ad8f868b37e38099f4da98b3655e2bd1bcb28cc9ef7a8fe3f8b2e/aind_data_transfer_service-2.2.3-py3-none-any.whl", hash = "sha256:d0356afa305c65dc4181519229e9187bd7642836c81be2b790fdfbf8ec6910f6", size = 24789, upload-time = "2026-11-03T00:25:37.497Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/b7/5ee14d7031dc2372adb64cbdcb2a8e0e731cb83eb8bd0544a3421a3dc3fd/aind_data_transfer_service-2.3.0-py3-none-any.whl", hash = "sha256:ab426a2a2f3f872459e9bc99186b88ca44ba0696e6603ad7a31cf6a0acb10133", size = 24827, upload-time = "2026-11-18T22:40:40.745Z" },
 ]
 
 [[package]]
@@ -293,6 +294,7 @@ dependencies = [
     { name = "aind-data-access-api" },
     { name = "aind-physiology-fip", extra = ["data"] },
     { name = "aind-physiology-fip-data-mappers" },
+    { name = "confierge" },
     { name = "requests" },
     { name = "ruff" },
 ]
@@ -308,10 +310,11 @@ requires-dist = [
     { name = "aind-behavior-vr-foraging", extras = ["data"], editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" },
     { name = "aind-behavior-vr-foraging-curricula", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" },
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
-    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.13.8" },
+    { name = "aind-clabe", extras = ["aind-services", "otel"], specifier = ">=0.17" },
     { name = "aind-data-access-api", specifier = ">=1.10.0" },
     { name = "aind-physiology-fip", extras = ["data"], editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" },
     { name = "aind-physiology-fip-data-mappers", editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers" },
+    { name = "confierge", git = "https://github.com/AllenNeuralDynamics/ficus.git?subdirectory=packages%2Fconfierge&tag=v0.3.0" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "ruff" },
 ]
@@ -321,7 +324,7 @@ dev = [{ name = "pytest", specifier = ">=9.2.0" }]
 
 [[package]]
 name = "aind-physiology-fip"
-version = "0.5.1"
+version = "0.5.3"
 source = { editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -368,15 +371,15 @@ requires-dist = [
 
 [[package]]
 name = "aind-watchdog-service"
-version = "0.1.6"
+version = "0.1.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-data-transfer-service" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/15/4a/d42d8bc518260b195c5702146af3c5cf4e391ddd61abfe85dc7d48c90eaf/aind_watchdog_service-0.1.6.tar.gz", hash = "sha256:1b1679e37696bf269e646cf943f2a8255f7aaaacc779de0cce61abc3570dc169", size = 390289, upload-time = "2026-01-22T01:54:30.006Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/57/3310fd9de6d9237e6b0c5e224cfb529448a49b0d8be4fbfaebde796bc4a8/aind_watchdog_service-0.1.10.tar.gz", hash = "sha256:a39f3cda00ca8f09f325d04441f19a1a9682ccdc21fe067fa5e3e8f8f3ac2c5f", size = 394320, upload-time = "2026-11-20T00:05:01.572Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/1a/8bcc17159e4eef205f4463d2422a66ad685b31717b6416a2b40d60ec0177/aind_watchdog_service-0.1.6-py3-none-any.whl", hash = "sha256:69571b4e50719c6cec38d7d901cdffdcdca296039ebebce8971ef4aef849dee9", size = 47801, upload-time = "2026-01-22T01:54:28.827Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/3b/4df9267864747761bc875cc85c26e84015aa53402d3fcec730fe952ebb97/aind_watchdog_service-0.1.10-py3-none-any.whl", hash = "sha256:3887b38187f9e2f314f2266cb0ce11de10c5bc59dde0a624d2043787e35cd7e7", size = 48513, upload-time = "2026-11-20T00:05:00.439Z" },
 ]
 
 [[package]]
@@ -675,6 +678,16 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
+]
+
+[[package]]
+name = "confierge"
+version = "0.1.4"
+source = { git = "https://github.com/AllenNeuralDynamics/ficus.git?subdirectory=packages%2Fconfierge&tag=v0.3.0#82aa52fb9a91a94b4b7af51cd4000b620c40ba65" }
+dependencies = [
+    { name = "platformdirs" },
+    { name = "pydantic" },
+    { name = "requests" },
 ]
 
 [[package]]

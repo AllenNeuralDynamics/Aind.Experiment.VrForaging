@@ -16,7 +16,6 @@ from clabe.data_transfer.aind_watchdog import (
     WatchdogDataTransferService,
     WatchdogSettings,
 )
-from clabe.data_transfer.robocopy import RobocopyService, RobocopySettings
 from clabe.launcher import Launcher
 from clabe.logging import otel
 from clabe.modifiers import ByAnimalModifier
@@ -141,7 +140,7 @@ def _session_meets_min_duration(launcher: Launcher, session: Session, min_durati
         logger.warning("Session lasted %s, less than the minimum of %s.", duration, min_duration)
         ui.notify(
             f"Session lasted {duration}, less than the minimum of {min_duration}. "
-            "It will be copied to the network share but not submitted for upload.",
+            "It will stay on the rig and not be submitted for upload.",
             ui.MessageLevel.WARNING,
         )
         return False
@@ -157,8 +156,9 @@ def run_data_transfer(
 ) -> None:
     """Transfer session data, using Smartsheet metadata when a client is provided.
 
-    With `min_session_duration`, sessions shorter than it (or of unknown duration, unless the operator
-    confirms) are still robocopied off the rig but no watchdog manifest is created, so they are not uploaded.
+    The session is uploaded as one watchdog manifest per upload group configured in clabe.yml. With
+    `min_session_duration`, sessions shorter than it (or of unknown duration, unless the operator confirms) get no
+    manifest, so they stay on the rig and are not uploaded.
     """
     if not ui.prompt_confirm(ui.ConfirmRequest(label="Would you like to transfer data?", default=True)):
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
@@ -191,21 +191,6 @@ def run_data_transfer(
         smartsheet_row = smartsheet_client.get_row(session.subject)
         if smartsheet_row is not None:
             transfer_service.add_data_description_tags(*smartsheet_row.tags)
-
-    # Immediate robocopy to move behavior data off the rig before triggering watchdog.
-    try:
-        RobocopyService(
-            source=launcher.session_directory,
-            settings=RobocopySettings(
-                delete_src=False,
-                destination=Path(watchdog_settings.destination) / launcher.session_directory.name,
-                exclude_dirs=["behavior-videos", "fib"],
-            ),
-        ).transfer()
-    except Exception as e:  # noqa: BLE001 -- transfer failures are reported and retried by the watchdog
-        logger.error("Initial data transfer failed: %s", e)
-        ui.notify(f"Initial data transfer failed: {e}", ui.MessageLevel.ERROR)
-        otel.record_exception(e)
 
     if not submit_for_upload:
         logger.warning("Session not submitted for upload; no watchdog manifest was created.")

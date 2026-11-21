@@ -62,23 +62,11 @@ class FakeTransferService:
         self.transferred = True
 
 
-class FakeRobocopy:
-    calls: ClassVar[int] = 0
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        pass
-
-    def transfer(self) -> None:
-        FakeRobocopy.calls += 1
-
-
 class TestRunDataTransfer:
     @pytest.fixture(autouse=True)
     def _fakes(self, monkeypatch: pytest.MonkeyPatch):
         FakeTransferService.instances = []
-        FakeRobocopy.calls = 0
         monkeypatch.setattr(launcher_helpers, "WatchdogDataTransferService", FakeTransferService)
-        monkeypatch.setattr(launcher_helpers, "RobocopyService", FakeRobocopy)
         monkeypatch.setattr(launcher_helpers, "WatchdogSettings", lambda **_: SimpleNamespace(destination="dest"))
         self.prompts: list[str] = []
         self.answers: dict[str, bool] = {}
@@ -99,18 +87,15 @@ class TestRunDataTransfer:
     def test_long_session_is_submitted(self, tmp_path):
         _write_bounds(tmp_path / "session", datetime.timedelta(minutes=30))
         assert self._run(tmp_path) is True
-        assert FakeRobocopy.calls == 1
 
-    def test_short_session_is_robocopied_but_not_submitted(self, tmp_path):
+    def test_short_session_is_not_submitted(self, tmp_path):
         _write_bounds(tmp_path / "session", datetime.timedelta(minutes=4, seconds=59))
         assert self._run(tmp_path) is False
-        assert FakeRobocopy.calls == 1
 
     def test_unknown_duration_asks_and_respects_no(self, tmp_path):
         self.answers["Could not determine the session duration"] = False
         assert self._run(tmp_path) is False
         assert any("Could not determine the session duration" in p for p in self.prompts)
-        assert FakeRobocopy.calls == 1
 
     def test_unknown_duration_asks_and_respects_yes(self, tmp_path):
         self.answers["Could not determine the session duration"] = True

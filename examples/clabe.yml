@@ -13,20 +13,20 @@ otel:
 watchdog:
   project_name: "Cognitive flexibility in patch foraging"
   destination: '\\allen\\aind\\stage\\vr-foraging\\data'
-  transfer_endpoint: "http://aind-data-transfer-service/api/v2/submit_jobs"
+  transfer_endpoint: "http://aind-data-transfer-service-dev/api/v2/submit_jobs"
   s3_bucket: "default"
   # One watchdog manifest per group, all landing in the same asset.
   upload_groups:
     # Behavior and the session's metadata, submitted right away. Creates the metadata record.
     - name: 1_of_2
-      job_type: "vr_foraging_v2"
+      job_type: "vr_foraging_async_0"  # Upload request that should finish quickly
       creates_record: true
       modalities: [behavior]
       schedule_time: null
       delete_modalities_source_after_success: true
     # Every other UNCLAIMED modality (videos, photometry, ...), appended to the record later.
     - name: 2_of_2
-      job_type: "vr_foraging_v2"
+      job_type: "vr_foraging_async_1"  # Upload request that takes a while
       modalities: "*"
       schedule_time: "19:00"
       delete_modalities_source_after_success: true

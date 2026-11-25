@@ -14,6 +14,7 @@ from aind_behavior_services.utils import utcnow
 from clabe import resource_monitor, ui
 from clabe.apps import AindBehaviorServicesBonsaiApp
 from clabe.data_transfer.aind_watchdog import (
+    UploadGroup,
     WatchdogDataTransferService,
     WatchdogSettings,
 )
@@ -87,9 +88,18 @@ def _run_data_transfer(launcher: Launcher, session: Session) -> None:
         ui.notify("Data transfer skipped.", ui.MessageLevel.WARNING)
         return
 
-    watchdog_settings = WatchdogSettings(schedule_time=None)
+    watchdog_settings = WatchdogSettings(
+        upload_groups=[
+            UploadGroup(
+                name="calibration",
+                job_type="upload_only_v2",
+                creates_record=True,
+                schedule_time=None,
+                delete_modalities_source_after_success=True,
+            )
+        ]
+    )
     watchdog_settings.destination = Path(watchdog_settings.destination) / session.subject
-    watchdog_settings.job_type = "upload_only_v2"
     WatchdogDataTransferService(
         source=launcher.session_directory,
         settings=watchdog_settings,

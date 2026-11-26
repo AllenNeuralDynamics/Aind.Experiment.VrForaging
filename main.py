@@ -1,26 +1,22 @@
-"""CLABE launcher registry for Aind.Behavior.VrForaging + Physiology experiments.
+"""CLABE workflows for Aind.Behavior.VrForaging + Physiology experiments.
 
 Run with the generic clabe CLI, e.g.:
-    clabe run main.py
-    python -m clabe.cli run main.py
+    uv run clabe run
+    uv run clabe run --experiment-name vr-foraging-fip
 """
 
-from experiments.calibrate_olfactometer import calibrate_olfactometer, recover_olfactometer_calibration
-from experiments.fip import fip_photobleaching_protocol, fip_protocol
-from experiments.vr_foraging import (
-    calibration_protocol,
-    recover_session,
-    vr_foraging_fip_protocol,
-    vr_foraging_protocol,
-)
+from experiments.fip import fip, fip_photobleaching
+from experiments.olfactometer import calibrate_olfactometer, recover_olfactometer_calibration
+from experiments.recover_session import recover_session
+from experiments.vr_foraging import calibration, vr_foraging, vr_foraging_fip
 
 __all__ = [
     "calibrate_olfactometer",
-    "calibration_protocol",
-    "fip_photobleaching_protocol",
-    "fip_protocol",
+    "calibration",
+    "fip",
+    "fip_photobleaching",
     "recover_olfactometer_calibration",
     "recover_session",
-    "vr_foraging_fip_protocol",
-    "vr_foraging_protocol",
+    "vr_foraging",
+    "vr_foraging_fip",
 ]

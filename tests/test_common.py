@@ -7,8 +7,8 @@ from typing import Any, ClassVar
 import pytest
 from clabe import ui
 
-from experiments import launcher_helpers
-from experiments.launcher_helpers import get_session_duration, run_data_transfer
+from experiments import common
+from experiments.common import get_session_duration, run_data_transfer
 
 START = datetime.datetime(2026, 11, 5, 12, 0, tzinfo=datetime.UTC)
 MIN_DURATION = datetime.timedelta(minutes=5)
@@ -53,6 +53,7 @@ class FakeTransferService:
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.transferred = False
+        self.source = kwargs["source"]
         FakeTransferService.instances.append(self)
 
     def add_data_description_tags(self, *tags: str) -> None:
@@ -77,21 +78,24 @@ class TestRunDataTransfer:
     def _fakes(self, monkeypatch: pytest.MonkeyPatch):
         FakeTransferService.instances = []
         FakeRobocopy.calls = 0
-        monkeypatch.setattr(launcher_helpers, "WatchdogDataTransferService", FakeTransferService)
-        monkeypatch.setattr(launcher_helpers, "RobocopyService", FakeRobocopy)
-        monkeypatch.setattr(launcher_helpers, "WatchdogSettings", lambda **_: SimpleNamespace(destination="dest"))
+        monkeypatch.setattr(common, "WatchdogDataTransferService", FakeTransferService)
+        monkeypatch.setattr(common, "RobocopyService", FakeRobocopy)
+        monkeypatch.setattr(common, "WatchdogSettings", lambda **_: SimpleNamespace(destination="dest"))
         self.prompts: list[str] = []
         self.answers: dict[str, bool] = {}
 
-        def fake_prompt(request: ui.ConfirmRequest) -> bool:
-            self.prompts.append(request.label)
-            return next((v for k, v in self.answers.items() if k in request.label), True)
+        def fake_confirm(label: str, **_: Any) -> bool:
+            self.prompts.append(label)
+            return next((v for k, v in self.answers.items() if k in label), True)
 
-        monkeypatch.setattr(ui, "prompt_confirm", fake_prompt)
+        monkeypatch.setattr(ui, "confirm", fake_confirm)
 
     def _run(self, tmp_path: Path, min_duration: datetime.timedelta | None = MIN_DURATION) -> bool:
-        launcher = SimpleNamespace(session_directory=tmp_path / "session")
-        launcher.session_directory.mkdir(exist_ok=True)
+        session_directory = tmp_path / "session"
+        session_directory.mkdir(exist_ok=True)
+        launcher = SimpleNamespace(
+            session_directory=session_directory, session_directories=[session_directory, Path(r"\\rig-b\data\s")]
+        )
         session = SimpleNamespace(subject="828424", date=START)
         run_data_transfer(launcher, session, min_session_duration=min_duration)  # type: ignore[arg-type]
         return FakeTransferService.instances[0].transferred
@@ -119,3 +123,8 @@ class TestRunDataTransfer:
     def test_no_minimum_skips_the_check(self, tmp_path):
         _write_bounds(tmp_path / "session", datetime.timedelta(seconds=10))
         assert self._run(tmp_path, min_duration=None) is True
+
+    def test_transfers_every_registered_session_directory(self, tmp_path):
+        _write_bounds(tmp_path / "session", datetime.timedelta(minutes=30))
+        self._run(tmp_path)
+        assert FakeTransferService.instances[0].source == [tmp_path / "session", Path(r"\\rig-b\data\s")]

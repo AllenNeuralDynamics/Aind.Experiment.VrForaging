@@ -11,11 +11,15 @@ dependencies = [
     "aind-behavior-device-olfactometer[data-mappers]",
     "aind-physiology-fip[data]",
     "aind-physiology-fip-data-mappers",
-    "aind-clabe[aind-services, otel]>=0.17",
-    "confierge",
+    "aind-clabe[aind-services, otel, frontend]>=0.18.0rc1",
+    "aind-watchdog-service>=0.1.10.dev0",
     "ruff",
     "aind-data-access-api>=1.10.0",
     "requests>=2.34.2",
+    "confierge",
+    # clabe.aind.dataverse imports msal, but aind-clabe only requires it on Windows: without this, the workflows
+    # cannot be imported (or checked) on Linux CI.
+    "msal>=1.39.0",
 ]
 
 
@@ -26,7 +30,12 @@ aind-behavior-vr-foraging-curricula = { path = "./Aind.Behavior.VrForaging/src/p
 aind-behavior-device-olfactometer = { path = "./Aind.Behavior.Device.Olfactometer", editable = true }
 aind-physiology-fip = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip", editable = true }
 aind-physiology-fip-data-mappers = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers", editable = true }
+# Required by aind-clabe[aind-services] but not published to PyPI; sources only apply to direct dependencies
 confierge = { git = "https://github.com/AllenNeuralDynamics/ficus.git", subdirectory = "packages/confierge", tag = "v0.3.0" }
+
+[tool.uv]
+# confierge (required by aind-clabe>=0.15) needs pydantic>=2.13.4, but aind-data-schema caps it at <2.12.
+override-dependencies = ["pydantic>=2.13.4"]
 
 [tool.ruff]
 line-length = 120

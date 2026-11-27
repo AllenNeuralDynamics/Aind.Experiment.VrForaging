@@ -185,7 +185,7 @@ dev = [
 
 [[package]]
 name = "aind-clabe"
-version = "0.18.0rc5"
+version = "0.18.0rc6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aind-behavior-services" },
@@ -198,9 +198,9 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9b/0e/14435c2f2bc8f6eaa4693633300d94955d2686cf9b8b2eab097676b89f8e/aind_clabe-0.18.0rc5.tar.gz", hash = "sha256:2d652930d1c972f029d278c0ac5dba41cbc294a3bbef497a603440f59b87baca", size = 3450198, upload-time = "2026-11-27T20:20:49.697Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1b/72/565e05c81b6d8201b9fd60412afe6386b947443533368e1ab71e890948b5/aind_clabe-0.18.0rc6.tar.gz", hash = "sha256:f96c3fce4ab28d6e742365a458b56202611f03646a3b8c3a770ed39d4951a87b", size = 3461986, upload-time = "2026-11-27T23:04:03.155Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/ad/1a87a25d4cf42ca9deb2da54850b16ab101d0e82e798eb42e57c592490eb/aind_clabe-0.18.0rc5-py3-none-any.whl", hash = "sha256:664f84c7c7124ee027b2e0ba9a9afed96f17f23d0aec30e76a70ba1ece5551f9", size = 3544437, upload-time = "2026-11-27T20:20:47.967Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/93/8e9bfc311612d50d9262efc343a2f8b61ba1708414dc38f02599a5d85196/aind_clabe-0.18.0rc6-py3-none-any.whl", hash = "sha256:c909e482a3cacf2e9af1ae37ee63a754660e8efe306446572cb3fd4d9dc6fe16", size = 3558254, upload-time = "2026-11-27T23:04:01.431Z" },
 ]
 
 [package.optional-dependencies]
@@ -319,7 +319,7 @@ requires-dist = [
     { name = "aind-behavior-vr-foraging", extras = ["data"], editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" },
     { name = "aind-behavior-vr-foraging-curricula", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" },
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
-    { name = "aind-clabe", extras = ["aind-services", "otel", "frontend"], specifier = ">=0.18.0rc5" },
+    { name = "aind-clabe", extras = ["aind-services", "otel", "frontend"], specifier = ">=0.18.0rc6" },
     { name = "aind-data-access-api", specifier = ">=1.10.0" },
     { name = "aind-physiology-fip", extras = ["data"], editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" },
     { name = "aind-physiology-fip-data-mappers", editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers" },

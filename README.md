@@ -53,7 +53,7 @@ amount of glue code:
 - **`clabe`** (`aind-clabe`, installed as a dependency) is the framework that provides the
   `Workflow` runner, stores (rig/task/trainer-state selection), data-transfer services, curriculum
   runner, Smartsheet schedule lookups for scientific contacts and transfer metadata, and the generic CLI used to
-  run `main.py`. The workflows need clabe 0.18 (currently the `0.18.0rc6` pre-release).
+  run `main.py`. The workflows need clabe 0.18 (currently the `0.18.0rc7` pre-release).
 - **`experiments/_compat.py`** — aliases the clabe module the pinned submodules still import by its old name
   (`clabe.data_mapper.aind_data_schema`). Remove it once the submodules are updated.
 - **`pyproject.toml`** / **`uv.lock`** define the single Python environment (managed by

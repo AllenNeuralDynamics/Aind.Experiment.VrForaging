@@ -41,7 +41,12 @@ _ParametersForm = create_model(
     },
 )
 
-calibrate_olfactometer = Workflow("calibrate-olfactometer", order=3, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
+calibrate_olfactometer = Workflow(
+    "calibrate-olfactometer",
+    description="Calibrates the olfactometer, with its local rig configuration.",
+    order=3,
+    exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
+)
 
 
 @calibrate_olfactometer.step
@@ -131,7 +136,10 @@ def transfer(launcher: Launcher, session: Session) -> None:
 # Recovery: map and transfer a calibration whose Bonsai workflow already completed ----------------------------------
 
 recover_olfactometer_calibration = Workflow(
-    "recover-olfactometer-calibration", order=5, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S
+    "recover-olfactometer-calibration",
+    description="Maps and transfers an olfactometer calibration whose Bonsai workflow already finished.",
+    order=5,
+    exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
 )
 
 

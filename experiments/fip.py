@@ -75,7 +75,12 @@ def run_data_qc(launcher: Launcher) -> None:
 
 # FIP acquisition without the VrForaging behavior -------------------------------------------------------------------
 
-fip = Workflow("fip", order=5, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
+fip = Workflow(
+    "fip",
+    description="FIP photometry on its own, without the behavior.",
+    order=5,
+    exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
+)
 
 fip.step(steps.session())
 fip.step(resolve_rig, name="rig", title="FIP rig")
@@ -109,7 +114,12 @@ def transfer(launcher: Launcher, session: Session) -> None:
 # Photobleaching: the workflow only takes the rig (no session, data, mappers, QC or transfer). After a success it
 # exits without waiting for the user to close the session; after a failure it waits, so the error stays on screen.
 
-fip_photobleaching = Workflow("fip-photobleaching", order=6, exit_prompt_timeout=0)
+fip_photobleaching = Workflow(
+    "fip-photobleaching",
+    description="Photobleaches the FIP fibers: light on, nothing recorded.",
+    order=6,
+    exit_prompt_timeout=0,
+)
 
 fip_photobleaching.step(resolve_rig, name="rig", title="FIP rig")
 

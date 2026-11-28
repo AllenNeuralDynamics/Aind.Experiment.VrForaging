@@ -67,25 +67,27 @@ def run_vr_foraging_mappers(
 
 
 def run_data_qc(launcher: Launcher) -> None:
-    """Generates the VrForaging QC report and opens it. Failures are reported, not raised."""
+    """Generates the VrForaging QC report and shows it in the run's page. Failures are reported, not raised."""
+    qc_path = launcher.session_directory / "Behavior" / "Logs" / "qc_report.html"
     try:
-        import webbrowser
-
         from aind_behavior_vr_foraging.data_qc.data_qc import make_qc_runner
         from contraqctor.qc.reporters import HtmlReporter
 
         ui.notify("Running data QC...", ui.MessageLevel.INFO)
         vr_dataset = data_contract.dataset(launcher.session_directory)
         runner = make_qc_runner(vr_dataset)
-        qc_path = launcher.session_directory / "Behavior" / "Logs" / "qc_report.html"
         reporter = HtmlReporter(output_path=qc_path)
         runner.run_all_with_progress(reporter=reporter)
         ui.notify(f"QC report saved to {qc_path}", ui.MessageLevel.SUCCESS)
-        webbrowser.open(qc_path.as_uri(), new=2)
     except Exception as e:  # noqa: BLE001 -- QC failures should be reported without aborting the session
         logger.error("Failed to run data QC: %s", e)
         ui.notify(f"Failed to run data QC: {e}", ui.MessageLevel.ERROR)
         otel.record_exception(e)
+        return
+    # Outside the try: an abort while the report is shown (clabe's Abort is an Exception) must not be swallowed.
+    # The report is self-contained (images inlined), so the run's page can show it in its frame; clients that
+    # cannot show HTML print its path.
+    ui.html(qc_path, title="VrForaging QC report", button_label="Done")
 
 
 class ByAnimalManipulatorModifier(ByAnimalModifier[AindVrForagingRig]):

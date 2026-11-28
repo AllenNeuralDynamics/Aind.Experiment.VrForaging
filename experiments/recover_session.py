@@ -19,7 +19,13 @@ from . import vr_foraging as vr
 from .common import EXIT_PROMPT_TIMEOUT_S, ask_session_end_time
 from .curriculum_helpers import prepare_past_metrics
 
-recover_session = Workflow("recover-session", order=4, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
+recover_session = Workflow(
+    "recover-session",
+    description="Reprocesses a finished session from its folder (e.g. after a launcher crash): curriculum, "
+    "mapping, QC and transfer.",
+    order=4,
+    exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
+)
 
 
 @recover_session.step

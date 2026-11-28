@@ -1,9 +1,6 @@
-import asyncio
 import contextlib
 import datetime
 import json
-from pathlib import Path
-from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -15,7 +12,6 @@ from experiments.curriculum_helpers import (
     PAST_METRICS_RELATIVE_PATH,
     fetch_past_metrics,
     prepare_past_metrics,
-    run_curriculum_if_applicable,
 )
 
 TASK = "AindVrForaging"
@@ -262,60 +258,3 @@ class TestPrepare:
     def test_keep_existing_fetches_when_the_file_is_missing(self, tmp_path):
         path = self._prepare(tmp_path, FakeClient([[_record("a", _day(1), {"i": 1})]]), keep_existing=True)
         assert path.read_text() == '{"i": 1}\n'
-
-
-class TestRunCurriculumUploadSuggestion:
-    @pytest.fixture(autouse=True)
-    def _fakes(self, monkeypatch: pytest.MonkeyPatch):
-        self.past_metrics_calls: list[dict[str, Any]] = []
-        suggestion = SimpleNamespace(trainer_state="new-state")
-
-        class FakeCurriculumApp:
-            def __init__(self, settings: Any) -> None:
-                pass
-
-            async def run_async(self) -> None:
-                pass
-
-            def process_suggestion(self) -> Any:
-                return suggestion
-
-        monkeypatch.setattr(curriculum_helpers, "CurriculumApp", FakeCurriculumApp)
-        monkeypatch.setattr(curriculum_helpers, "CurriculumSettings", lambda **kwargs: SimpleNamespace(**kwargs))
-        monkeypatch.setattr(curriculum_helpers, "_dump_suggestion", lambda s, d: d / "suggestion.json")
-        monkeypatch.setattr(
-            curriculum_helpers, "prepare_past_metrics", lambda *a, **kw: self.past_metrics_calls.append(kw)
-        )
-
-    def _run(self, tmp_path: Path, trainer_state: Any, **kwargs: Any) -> list[Any]:
-        writes: list[Any] = []
-        store = SimpleNamespace(write=lambda kind, value: writes.append(value))
-        launcher = SimpleNamespace(session_directory=tmp_path)
-        session = SimpleNamespace(subject="828424", date=SESSION_START)
-        asyncio.run(
-            run_curriculum_if_applicable(store, trainer_state, tmp_path / "ts.json", launcher, session, **kwargs)  # type: ignore[arg-type]
-        )
-        return writes
-
-    @staticmethod
-    def _on_curriculum() -> Any:
-        return SimpleNamespace(
-            is_on_curriculum=True, stage=SimpleNamespace(task=SimpleNamespace(name="AindVrForaging"))
-        )
-
-    def test_uploads_by_default(self, tmp_path):
-        assert self._run(tmp_path, self._on_curriculum()) == ["new-state"]
-
-    def test_does_not_upload_when_declined(self, tmp_path):
-        assert self._run(tmp_path, self._on_curriculum(), upload_suggestion=False) == []
-
-    def test_prepares_history_bounded_by_session_start(self, tmp_path):
-        self._run(tmp_path, self._on_curriculum(), keep_existing_past_metrics=True)
-        assert self.past_metrics_calls == [
-            {"subject": "828424", "before": SESSION_START, "task_name": "AindVrForaging", "keep_existing": True}
-        ]
-
-    def test_skipped_entirely_when_not_on_curriculum(self, tmp_path):
-        off = SimpleNamespace(is_on_curriculum=False, stage=None)
-        assert self._run(tmp_path, off) == []
-        assert self.past_metrics_calls == []

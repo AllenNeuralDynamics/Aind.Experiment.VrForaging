@@ -1,4 +1,4 @@
-"""Curriculum helpers: evaluating the curriculum after a session, and the session history it may depend on.
+"""Curriculum helpers: the session history a curriculum may depend on.
 
 History-dependent curricula read the subject's past sessions from
 ``<session>/behavior/Logs/past_metrics.jsonl``. The curriculum metrics of every session are mapped into DocDB
@@ -19,19 +19,12 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from aind_behavior_curriculum import TrainerState
-from aind_behavior_services.session import Session
 from aind_data_access_api.document_db import MetadataDbClient
 from clabe import ui
-from clabe.apps import CurriculumApp, CurriculumSettings, CurriculumSuggestion
-from clabe.launcher import Launcher
 from clabe.logging import otel
 from clabe.runnable import runnable
-from clabe.stores import Kind, Store
 
 logger = logging.getLogger(__name__)
-
-_TRAINER_STATE = Kind.from_trainer_state()
 
 PAST_METRICS_RELATIVE_PATH = Path("behavior") / "Logs" / "past_metrics.jsonl"
 
@@ -257,53 +250,3 @@ def prepare_past_metrics(
         ui.notify(f"Could not write session history: {e}", ui.MessageLevel.WARNING)
         otel.record_exception(e)
     return path
-
-
-def _dump_suggestion(suggestion: CurriculumSuggestion, session_directory: Path) -> Path:
-    path = session_directory / "Behavior" / "Logs" / "suggestion.json"
-    logger.info("Dumping curriculum suggestion to: %s", path)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(suggestion.model_dump_json(indent=2))
-    return path
-
-
-def is_on_curriculum(trainer_state: TrainerState | None) -> bool:
-    return trainer_state is not None and trainer_state.is_on_curriculum is True and trainer_state.stage is not None
-
-
-async def run_curriculum_if_applicable(
-    store: Store,
-    trainer_state: TrainerState | None,
-    input_trainer_state_path: Path,
-    launcher: Launcher,
-    session: Session,
-    *,
-    keep_existing_past_metrics: bool = False,
-    upload_suggestion: bool = True,
-) -> tuple[CurriculumSuggestion | None, Path | None, CurriculumSettings | None]:
-    if not is_on_curriculum(trainer_state):
-        return None, None, None
-    assert trainer_state is not None and trainer_state.stage is not None
-    # History-dependent curricula read the past sessions from the session directory.
-    prepare_past_metrics(
-        launcher.session_directory,
-        subject=session.subject,
-        before=session.date,
-        task_name=trainer_state.stage.task.name,
-        keep_existing=keep_existing_past_metrics,
-    )
-    ui.notify("Running curriculum evaluation...", ui.MessageLevel.INFO)
-    settings = CurriculumSettings(
-        input_trainer_state=input_trainer_state_path.resolve(),
-        data_directory=launcher.session_directory,
-    )
-    curriculum_app = CurriculumApp(settings=settings)
-    await curriculum_app.run_async()
-    suggestion = curriculum_app.process_suggestion()
-    suggestion_path = _dump_suggestion(suggestion, launcher.session_directory)
-    if upload_suggestion:
-        store.write(_TRAINER_STATE, suggestion.trainer_state)
-    else:
-        logger.info("Curriculum suggestion not uploaded; the subject's trainer state is unchanged.")
-        ui.notify("Curriculum suggestion was not uploaded.", ui.MessageLevel.WARNING)
-    return suggestion, suggestion_path, settings

@@ -27,3 +27,6 @@ jobs:
 
       - name: Run ruff check
         run: uv run ruff check
+
+      - name: Check the workflows
+        run: uv run clabe check experiments --strict

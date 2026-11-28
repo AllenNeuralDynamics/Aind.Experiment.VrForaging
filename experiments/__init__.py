@@ -1,23 +1,4 @@
-"""CLABE experiments and their shared launcher helpers."""
+"""The workflows of this repository (registered in ``main.py``) and their helpers."""
 
-from .curriculum_helpers import is_on_curriculum, run_curriculum_if_applicable
-from .fip import run_fip_data_qc, run_fip_mapper
-from .launcher_helpers import (
-    ByAnimalManipulatorModifier,
-    confirm_session_info,
-    run_data_qc,
-    run_data_transfer,
-    run_vr_foraging_mappers,
-)
-
-__all__ = [
-    "ByAnimalManipulatorModifier",
-    "confirm_session_info",
-    "is_on_curriculum",
-    "run_curriculum_if_applicable",
-    "run_data_qc",
-    "run_data_transfer",
-    "run_fip_data_qc",
-    "run_fip_mapper",
-    "run_vr_foraging_mappers",
-]
+# First: lets the pinned submodules import with the current clabe.
+from . import _compat  # noqa: F401

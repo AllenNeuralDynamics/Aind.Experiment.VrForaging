@@ -1,49 +1,61 @@
-"""FIP experiments (acquisition and photobleaching) and their helpers."""
+"""FIP: its rig library, app, mapper and QC, and the FIP-only workflows (acquisition and photobleaching)."""
 
 import logging
 from pathlib import Path
 
-import aind_physiology_fip.rig
+from aind_behavior_services.session import Session
+from aind_physiology_fip.rig import AindPhysioFipRig
 from aind_physiology_fip_data_mappers import DataMapperCli as FipDataMapperCli
-from clabe import resource_monitor, ui
-from clabe.apps import AindBehaviorServicesBonsaiApp
-from clabe.launcher import Launcher, experiment
+from clabe import checks, steps, ui
+from clabe.apps import AindBehaviorServicesBonsaiApp, CommandResult
+from clabe.launcher import Launcher
 from clabe.logging import otel
-from clabe.session import SessionBuilder
 from clabe.stores import Kind, LocalFileStore
+from clabe.workflow import Workflow
 
-from .launcher_helpers import EXIT_PROMPT_TIMEOUT_S, run_data_transfer
+from .common import EXIT_PROMPT_TIMEOUT_S, copy_logs, run_data_transfer
 
 logger = logging.getLogger(__name__)
 
-_FIP_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindPhysiologyFip")
-_FIP_RIG = Kind.from_rig(aind_physiology_fip.rig.AindPhysioFipRig)
-FIP_WORKFLOW = Path(r"./Aind.Physiology.Fip/src/main.bonsai")
+_CONFIG_LIBRARY = Path(r"\\allen\aind\scratch\AindBehavior.db\AindPhysiologyFip")
+_RIG = Kind.from_rig(AindPhysioFipRig)
+_WORKFLOW = Path(r"./Aind.Physiology.Fip/src/main.bonsai")
 _PHOTOBLEACHING_WORKFLOW = Path(r"./Aind.Physiology.Fip/src/photobleaching.bonsai")
-FIP_BONSAI_EXECUTABLE = Path(r"./Aind.Physiology.Fip/.bonsai/bonsai.exe")
+_BONSAI_EXECUTABLE = Path(r"./Aind.Physiology.Fip/.bonsai/bonsai.exe")
 
 
-def resolve_fip_rig() -> aind_physiology_fip.rig.AindPhysioFipRig:
-    """Prompt for / load a FIP rig from the local configuration library."""
-    return LocalFileStore(_FIP_CONFIG_LIBRARY).resolve(_FIP_RIG)
+def resolve_rig() -> AindPhysioFipRig:
+    """Prompts for / loads a FIP rig from its configuration library."""
+    return LocalFileStore(_CONFIG_LIBRARY).resolve(_RIG)
 
 
-def run_fip_mapper(launcher: Launcher) -> None:
-    """Run the FIP instrument and acquisition mappers (``instrument_fib.json`` / ``acquisition_fib.json``)."""
+def fip_app(launcher: Launcher, rig: AindPhysioFipRig, session: Session) -> AindBehaviorServicesBonsaiApp:
+    """The FIP acquisition Bonsai workflow."""
+    return AindBehaviorServicesBonsaiApp(
+        workflow=_WORKFLOW,
+        executable=_BONSAI_EXECUTABLE,
+        temp_directory=launcher.temp_dir,
+        rig=rig,
+        session=session,
+        is_editor_mode=False,
+    )
+
+
+def run_mapper(launcher: Launcher) -> None:
+    """Runs the FIP instrument and acquisition mappers (``instrument_fib.json`` / ``acquisition_fib.json``)."""
     if not (launcher.session_directory / "fib").exists():
         logger.info("No 'fib' folder found under %s; skipping FIP mapper.", launcher.session_directory)
         return
     assert launcher.repository.working_tree_dir is not None
-    fip_repository_path = Path(launcher.repository.working_tree_dir) / "Aind.Physiology.Fip"
     ui.notify("Running FIP data mappers...", ui.MessageLevel.INFO)
     FipDataMapperCli(
         data_path=launcher.session_directory,
-        repository_path=fip_repository_path,
+        repository_path=Path(launcher.repository.working_tree_dir) / "Aind.Physiology.Fip",
     ).cli_cmd()
 
 
-def run_fip_data_qc(launcher: Launcher) -> None:
-    """Run FIP QC when the session contains FIP recordings."""
+def run_data_qc(launcher: Launcher) -> None:
+    """Runs FIP QC when the session contains FIP recordings. Failures are reported, not raised."""
     fib_dir = launcher.session_directory / "fib"
     if not fib_dir.exists():
         return
@@ -61,44 +73,63 @@ def run_fip_data_qc(launcher: Launcher) -> None:
         otel.record_exception(e)
 
 
-@experiment(name="fip", order=5, exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S)
-async def fip_protocol(launcher: Launcher) -> None:
-    """Run FIP acquisition without the VrForaging behavior component."""
-    session = SessionBuilder(launcher).build()
-    rig = resolve_fip_rig()
+# FIP acquisition without the VrForaging behavior -------------------------------------------------------------------
 
-    resource_monitor.ResourceMonitor(
-        constrains=[resource_monitor.available_storage_constraint_factory(rig.data_directory, 2e11)]
-    ).run()
-    launcher.register_session(session, rig.data_directory)
+fip = Workflow(
+    "fip",
+    description="Launches fiber photometry alone",
+    order=5,
+    exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
+)
 
-    await AindBehaviorServicesBonsaiApp(
-        workflow=FIP_WORKFLOW,
-        executable=FIP_BONSAI_EXECUTABLE,
+fip.step(steps.session())
+fip.step(resolve_rig, name="rig", title="FIP rig")
+fip.step(steps.preflight(checks.free_space(2e11)))
+fip.step(steps.register())
+
+
+@fip.step(cancellable=True)
+async def acquire(launcher: Launcher, session: Session, rig: AindPhysioFipRig) -> CommandResult:
+    return await fip_app(launcher, rig, session).run_async()
+
+
+@fip.step(title="FIP mapper")
+def mapper(launcher: Launcher) -> None:
+    run_mapper(launcher)
+
+
+@fip.step(title="FIP QC")
+def qc(launcher: Launcher) -> None:
+    run_data_qc(launcher)
+
+
+fip.step(copy_logs)
+
+
+@fip.step(optional="Would you like to transfer data?")
+def transfer(launcher: Launcher, session: Session) -> None:
+    run_data_transfer(launcher, session)
+
+
+# Photobleaching: the workflow only takes the rig (no session, data, mappers, QC or transfer). After a success it
+# exits without waiting for the user to close the session; after a failure it waits, so the error stays on screen.
+
+fip_photobleaching = Workflow(
+    "fip-photobleaching",
+    description="Launches fiber photometry photobleaching. Nothing is recorded",
+    order=6,
+    exit_prompt_timeout=0,
+)
+
+fip_photobleaching.step(resolve_rig, name="rig", title="FIP rig")
+
+
+@fip_photobleaching.step
+async def photobleach(launcher: Launcher, rig: AindPhysioFipRig) -> CommandResult:
+    return await AindBehaviorServicesBonsaiApp(
+        workflow=_PHOTOBLEACHING_WORKFLOW,
+        executable=_BONSAI_EXECUTABLE,
         temp_directory=launcher.temp_dir,
         rig=rig,
-        session=session,
         is_editor_mode=False,
     ).run_async()
-
-    run_fip_mapper(launcher)
-    run_fip_data_qc(launcher)
-    launcher.copy_logs()
-    run_data_transfer(launcher, session)
-    ui.notify("FIP experiment completed successfully.", ui.MessageLevel.SUCCESS)
-
-
-@experiment(name="fip-photobleaching", order=6, exit_prompt_timeout=0)
-async def fip_photobleaching_protocol(launcher: Launcher) -> None:
-    """Run the FIP photobleaching protocol.
-
-    The workflow only takes the rig: no session, data, mappers, QC or data transfer.
-    """
-    await AindBehaviorServicesBonsaiApp(
-        workflow=_PHOTOBLEACHING_WORKFLOW,
-        executable=FIP_BONSAI_EXECUTABLE,
-        temp_directory=launcher.temp_dir,
-        rig=resolve_fip_rig(),
-        is_editor_mode=False,
-    ).run_async()
-    ui.notify("FIP photobleaching completed.", ui.MessageLevel.SUCCESS)

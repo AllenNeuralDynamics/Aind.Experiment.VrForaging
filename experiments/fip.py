@@ -77,7 +77,7 @@ def run_data_qc(launcher: Launcher) -> None:
 
 fip = Workflow(
     "fip",
-    description="FIP photometry on its own, without the behavior.",
+    description="Launches fiber photometry alone",
     order=5,
     exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
 )
@@ -116,7 +116,7 @@ def transfer(launcher: Launcher, session: Session) -> None:
 
 fip_photobleaching = Workflow(
     "fip-photobleaching",
-    description="Photobleaches the FIP fibers: light on, nothing recorded.",
+    description="Launches fiber photometry photobleaching. Nothing is recorded",
     order=6,
     exit_prompt_timeout=0,
 )

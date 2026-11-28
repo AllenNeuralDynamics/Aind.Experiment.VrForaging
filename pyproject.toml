@@ -30,8 +30,8 @@ aind-behavior-vr-foraging-curricula = { path = "./Aind.Behavior.VrForaging/src/p
 aind-behavior-device-olfactometer = { path = "./Aind.Behavior.Device.Olfactometer", editable = true }
 aind-physiology-fip = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip", editable = true }
 aind-physiology-fip-data-mappers = { path = "./Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers", editable = true }
-# A build of clabe's main branch (commit cf17fa8), web UI included: https://github.com/AllenNeuralDynamics/clabe/releases/tag/builds
-aind-clabe = { url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bgcf17fa8e0219739f3a1c91aed4040f1190c2778a-py3-none-any.whl" }
+# A build of clabe's main branch (commit 18eb8c0), web UI included: https://github.com/AllenNeuralDynamics/clabe/releases/tag/builds
+aind-clabe = { url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bg18eb8c00cd87377c4b2dcc444c4d92776b821233-py3-none-any.whl" }
 # Required by aind-clabe[aind-services] but not published to PyPI; sources only apply to direct dependencies
 confierge = { git = "https://github.com/AllenNeuralDynamics/ficus.git", subdirectory = "packages/confierge", tag = "v0.3.0" }
 

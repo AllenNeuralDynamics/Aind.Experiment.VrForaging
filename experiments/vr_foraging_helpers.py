@@ -85,8 +85,8 @@ def run_data_qc(launcher: Launcher) -> None:
         otel.record_exception(e)
         return
     # Outside the try: an abort while the report is shown (clabe's Abort is an Exception) must not be swallowed.
-    # The report is self-contained (images inlined), so the run's page can show it in its frame; clients that
-    # cannot show HTML print its path.
+    # The report is self-contained (images inlined), so the run's page can show it in its frame; the terminal
+    # clients (TUI, console) open it in the OS browser instead, where it stays open after the run.
     ui.html(qc_path, title="VrForaging QC report", button_label="Done")
 
 

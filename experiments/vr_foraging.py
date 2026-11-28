@@ -81,7 +81,7 @@ def behavior_app(
 
 vr_foraging = Workflow(
     "vr-foraging",
-    description="VR foraging on its own, without physiology.",
+    description="Launches VrForaging behavior only",
     order=0,
     exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
 )
@@ -268,7 +268,7 @@ def with_fip() -> Modalities:
 
 
 vr_foraging_fip = vr_foraging.variant(
-    "vr-foraging-fip", description="VR foraging with FIP photometry recording alongside, as one session.", order=1
+    "vr-foraging-fip", description="Launches VrForaging behavior and fiber photometry in the same session", order=1
 ).replace("modalities", with_fip)
 
 
@@ -276,7 +276,7 @@ vr_foraging_fip = vr_foraging.variant(
 
 calibration = Workflow(
     "calibration",
-    description="Runs the VR foraging rig alone, to calibrate it. Nothing is recorded.",
+    description='Opens VrForaging with "calibration" as a subject. Only use for calibration/tests',
     order=2,
     exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
 )

@@ -21,8 +21,8 @@ from .curriculum_helpers import prepare_past_metrics
 
 recover_session = Workflow(
     "recover-session",
-    description="Reprocesses a finished session from its folder (e.g. after a launcher crash): curriculum, "
-    "mapping, QC and transfer.",
+    description="Recovers a VrForaging session that already ran (e.g. after a launcher crash): curriculum, mapping, QC "
+    "and transfer",
     order=4,
     exit_prompt_timeout=EXIT_PROMPT_TIMEOUT_S,
 )

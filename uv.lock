@@ -185,8 +185,8 @@ dev = [
 
 [[package]]
 name = "aind-clabe"
-version = "0.18.0rc8+gcf17fa8e0219739f3a1c91aed4040f1190c2778a"
-source = { url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bgcf17fa8e0219739f3a1c91aed4040f1190c2778a-py3-none-any.whl" }
+version = "0.18.0rc8+g18eb8c00cd87377c4b2dcc444c4d92776b821233"
+source = { url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bg18eb8c00cd87377c4b2dcc444c4d92776b821233-py3-none-any.whl" }
 dependencies = [
     { name = "aind-behavior-services" },
     { name = "gitpython" },
@@ -199,7 +199,7 @@ dependencies = [
     { name = "rich" },
 ]
 wheels = [
-    { url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bgcf17fa8e0219739f3a1c91aed4040f1190c2778a-py3-none-any.whl", hash = "sha256:d29056d89bef9918d3a91f2dd0d2fe3a42bab0510e60df06bb970ec98454d4df" },
+    { url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bg18eb8c00cd87377c4b2dcc444c4d92776b821233-py3-none-any.whl", hash = "sha256:630741c973f83b94ec5f393f0eeee1a094325b5bc14fed30c6903c18e2173472" },
 ]
 
 [package.optional-dependencies]
@@ -352,7 +352,7 @@ requires-dist = [
     { name = "aind-behavior-vr-foraging", extras = ["data"], editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging" },
     { name = "aind-behavior-vr-foraging-curricula", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_curricula" },
     { name = "aind-behavior-vr-foraging-data-mappers", editable = "Aind.Behavior.VrForaging/src/packages/aind_behavior_vr_foraging_data_mappers" },
-    { name = "aind-clabe", extras = ["aind-services", "otel", "frontend"], url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bgcf17fa8e0219739f3a1c91aed4040f1190c2778a-py3-none-any.whl" },
+    { name = "aind-clabe", extras = ["aind-services", "otel", "frontend"], url = "https://github.com/AllenNeuralDynamics/clabe/releases/download/builds/aind_clabe-0.18.0rc8%2Bg18eb8c00cd87377c4b2dcc444c4d92776b821233-py3-none-any.whl" },
     { name = "aind-data-access-api", specifier = ">=1.10.0" },
     { name = "aind-physiology-fip", extras = ["data"], editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip" },
     { name = "aind-physiology-fip-data-mappers", editable = "Aind.Physiology.Fip/src/packages/aind_physiology_fip_data_mappers" },

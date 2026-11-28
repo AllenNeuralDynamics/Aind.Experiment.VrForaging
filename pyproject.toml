@@ -11,7 +11,7 @@ dependencies = [
     "aind-behavior-device-olfactometer[data-mappers]",
     "aind-physiology-fip[data]",
     "aind-physiology-fip-data-mappers",
-    "aind-clabe[aind-services, otel, frontend]>=0.18.0rc7",
+    "aind-clabe[aind-services, otel, frontend]>=0.18.0rc8",
     "aind-watchdog-service>=0.1.10.dev0",
     "ruff",
     "aind-data-access-api>=1.10.0",
